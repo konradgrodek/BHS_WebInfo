@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    {% load static %}
+    <link rel="icon" href="{% static 'info/house-fill.svg' %}" sizes="any">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="30">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <title>Hej, cześć! To ja, Twój domek!</title>
+  </head>
+  <body>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
+    <br>
+
+    <div class="container" align="center">
+      {{date}}
+    </div>
+
+    <h1 align="center">Dzień dobry!</h1>
+
+    <div class="container" align="center">
+      <div class="row">
+        <div class="col">
+          <b>{{external}}</b><br>
+          Na polu
+        </div>
+        <div class="col">
+          <b>{{internal}}</b><br>
+          W domu
+        </div>
+        <div class="col">
+          <b>{{bunker}}</b><br>
+          W bunkrze
+        </div>
+      </div>
+    </div>
+
+
+
+
+  </body>
+</html>
