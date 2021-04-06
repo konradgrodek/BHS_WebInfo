@@ -10,7 +10,7 @@ class RestEndPoint:
         self.path = _path
         if not self.path:
             self.path = ''
-        elif not self.path.endswith('/'):
+        elif not self.path.startswith('/'):
             self.path = '/'+self.path
 
     def get_url(self):
@@ -30,6 +30,10 @@ class RestConfig(ConfigParser):
     OPTION_HOST = 'host'
     OPTION_PORT = 'port'
     OPTION_CURRENT_TEMP = 'current-temperature'
+    OPTION_CURRENT_CESSPIT = 'current-cesspit-level'
+    OPTION_CURRENT_PRESSURE = 'current-pressure'
+    OPTION_CURRENT_HUMIDITY_IN = 'current-humidity-in'
+    OPTION_CURRENT_AIR_QUALITY = 'current-air-quality'
 
     def __init__(self):
         ConfigParser.__init__(self)
@@ -39,3 +43,23 @@ class RestConfig(ConfigParser):
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_TEMP))
+
+    def get_current_pressure_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_PRESSURE))
+
+    def get_current_humidity_in_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_HUMIDITY_IN))
+
+    def get_current_air_quality_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_AIR_QUALITY))
+
+    def get_current_cesspit_level_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_CESSPIT))
