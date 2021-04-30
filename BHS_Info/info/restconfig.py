@@ -34,6 +34,8 @@ class RestConfig(ConfigParser):
     OPTION_CURRENT_PRESSURE = 'current-pressure'
     OPTION_CURRENT_HUMIDITY_IN = 'current-humidity-in'
     OPTION_CURRENT_AIR_QUALITY = 'current-air-quality'
+    OPTION_CURRENT_DAYLIGHT = 'current-daylight'
+    OPTION_CURRENT_RAIN = 'current-rain'
 
     def __init__(self):
         ConfigParser.__init__(self)
@@ -63,3 +65,13 @@ class RestConfig(ConfigParser):
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_CESSPIT))
+
+    def get_current_daylight_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_DAYLIGHT))
+
+    def get_current_rain_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_RAIN))

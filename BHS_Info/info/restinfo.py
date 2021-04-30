@@ -98,3 +98,10 @@ class MainPageInfo(RestBackend):
 
     def get_air_quality(self) -> AirQualityInterpretedReadingJson:
         return self._safe_json_get(self._get_json(rest_configuration.get_current_air_quality_endpoint().get_url()))
+
+    def get_daylight(self) -> DaylightInterpretedReadingJson:
+        return self._safe_json_get(self._get_json(rest_configuration.get_current_daylight_endpoint().get_url()))
+
+    def get_rain(self) -> RainReadingJson:
+        return self._safe_json_get(self._get_json(rest_configuration.get_current_rain_endpoint().get_url()))
+

@@ -19,6 +19,8 @@ def index(request):
     humidity_in = information.get_humidity_in()
     air_quality = information.get_air_quality()
     pressure = information.get_pressure()
+    daylight = information.get_daylight()
+    rain = information.get_rain()
 
     _unknown = '?'
     _celsius = '\u2103'
@@ -36,6 +38,8 @@ def index(request):
         CesspitState.WARNING: 'bg-warning',
         CesspitState.CRITICAL: 'bg-danger'
     }
+
+
 
     str_temp_external = f'{temp_external.temperature:.1f} {_celsius}' if temp_external else _unknown
     str_temp_internal = f'{temp_internal.temperature:.1f} {_celsius}' if temp_internal else _unknown
@@ -72,6 +76,20 @@ def index(request):
 
     tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality else ''
 
+    sky_state_icon = None
+    if rain.is_raining:
+        sky_state_icon = 'cloud-rain.svg'  # heavy?
+    elif daylight.time_of_day == TimeOfDay.NIGHT:
+        sky_state_icon = 'moon.svg'
+    elif daylight.original_reading.is_sunlight:
+        sky_state_icon = 'sun.svg'
+    elif daylight.time_of_day == TimeOfDay.MORNING:
+        sky_state_icon = 'sunrise.svg'
+    elif daylight.time_of_day == TimeOfDay.EVENING:
+        sky_state_icon = 'sunset.svg'
+    else:
+        sky_state_icon = 'clouds.svg'  # cloud-sun?
+
     context = {
         'temp_external': str_temp_external,
         'temp_internal': str_temp_internal,
@@ -95,6 +113,11 @@ def index(request):
         'aq_pm_2_5_level': aq_pm_2_5_level,
         'aq_pm_2_5_color': aq_pm_2_5_color,
         'tm_aq': tm_aq,
+        'sunrise': daylight.sunrise,
+        'sunset': daylight.sunset,
+        'sky_state_icon': sky_state_icon,
+        'daylight_perc': daylight.original_reading.luminescence_perc,
+        'rain_perc': rain.volume_perc,
         'date': _current_date
     }
 

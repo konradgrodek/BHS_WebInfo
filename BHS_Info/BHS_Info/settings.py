@@ -27,8 +27,13 @@ with open(Path(__file__).resolve().parent.joinpath('.secret'), 'r') as secret_fi
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if sys.gettrace() else False
 
-# in future, replace with 'info.local'
-ALLOWED_HOSTS = ['192.168.1.5']
+ALLOWED_HOSTS = [
+    '192.168.1.5',
+    '192.168.1.6',
+    'info.home.online',
+    'red.home.online',
+    'home.online'
+]
 
 
 # Application definition

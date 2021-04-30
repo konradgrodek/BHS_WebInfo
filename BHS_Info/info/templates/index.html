@@ -25,6 +25,10 @@
 
     <h1 align="center">Dzień dobry!</h1>
 
+    <div class="container" align="center">
+      <img src="{% static 'info/sunrise.svg' %}" height="30"> {{sunrise}} <img src="{% static 'info/sunset.svg' %}"  height="30"> {{sunset}}
+    </div>
+
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
@@ -53,7 +57,12 @@
     <br>
     <div class="container px-4" align="center">
       <div class="row gx-5">
-        <div class="col-sm"></div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <img src="{% static 'info/' %}{{sky_state_icon}}" height="30"><br>
+            <span style="font-size:0.8em">Światło: {{daylight_perc}}% Deszcz: {{rain_perc}}%</span>
+          </div>
+        </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{pressure}} hPa</b> <img src="{% static 'info/' %}{{pressure_tendency_icon}}"><br>
