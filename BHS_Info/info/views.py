@@ -39,8 +39,6 @@ def index(request):
         CesspitState.CRITICAL: 'bg-danger'
     }
 
-
-
     str_temp_external = f'{temp_external.temperature:.1f} {_celsius}' if temp_external else _unknown
     str_temp_internal = f'{temp_internal.temperature:.1f} {_celsius}' if temp_internal else _unknown
     str_temp_bunker = f'{temp_bunker.temperature:.1f} {_celsius}' if temp_bunker else _unknown
@@ -76,7 +74,6 @@ def index(request):
 
     tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality else ''
 
-    sky_state_icon = None
     if rain.is_raining:
         sky_state_icon = 'cloud-rain.svg'  # heavy?
     elif daylight.time_of_day == TimeOfDay.NIGHT:
@@ -89,6 +86,10 @@ def index(request):
         sky_state_icon = 'sunset.svg'
     else:
         sky_state_icon = 'clouds.svg'  # cloud-sun?
+
+    soil_hum = information.get_soil_moisture()
+    tenicon_shum = _tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY]
+    str_shum = f'{soil_hum.current_value:.1f}'
 
     context = {
         'temp_external': str_temp_external,
@@ -118,6 +119,8 @@ def index(request):
         'sky_state_icon': sky_state_icon,
         'daylight_perc': daylight.original_reading.luminescence_perc,
         'rain_perc': rain.volume_perc,
+        'soil_hum_tendency_icon': tenicon_shum,
+        'soil_hum': str_shum,
         'date': _current_date
     }
 
