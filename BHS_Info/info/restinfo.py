@@ -85,6 +85,13 @@ class MainPageInfo(RestBackend):
             resp = json_to_bean(endpoint)
         except ValueError as err:
             resp = ErrorJsonBean(repr(err))
+        except requests.Timeout:
+            resp = NotAvailableJsonBean()
+        except requests.ConnectionError as err:
+            resp = ErrorJsonBean(repr(err))
+        except requests.HTTPError as err:
+            resp = ErrorJsonBean(repr(err))
+
         return resp if type(resp) == list or resp.has_succeeded() else None
 
     def get_cesspit_level(self) -> CesspitInterpretedReadingJson:
@@ -105,10 +112,5 @@ class MainPageInfo(RestBackend):
     def get_rain(self) -> RainReadingJson:
         return self._safe_json_get(self._get_json(rest_configuration.get_current_rain_endpoint().get_url()))
 
-    def get_soil_moisture(self) -> ValueTendencyJson:
-        _sm = self._safe_json_get(self._get_json(rest_configuration.get_current_soil_moisture().get_url()))
-        # currently only one sensor is supported
-        if not _sm or len(_sm) < 1:
-            return None
-
-        return _sm[0]
+    def get_soil_moisture(self) -> list:
+        return self._safe_json_get(self._get_json(rest_configuration.get_current_soil_moisture().get_url()))

@@ -87,9 +87,9 @@ def index(request):
     else:
         sky_state_icon = 'clouds.svg'  # cloud-sun?
 
-    soil_hum = information.get_soil_moisture()
-    tenicon_shum = _tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY]
-    str_shum = f'{soil_hum.current_value:.1f}'
+    soil_hums = information.get_soil_moisture()
+    tenicons_shum = [_tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY] for soil_hum in soil_hums]
+    strs_shum = [f'{soil_hum.current_value:.1f}' for soil_hum in soil_hums]
 
     context = {
         'temp_external': str_temp_external,
@@ -119,8 +119,10 @@ def index(request):
         'sky_state_icon': sky_state_icon,
         'daylight_perc': daylight.original_reading.luminescence_perc,
         'rain_perc': rain.volume_perc,
-        'soil_hum_tendency_icon': tenicon_shum,
-        'soil_hum': str_shum,
+        'soil_hum_tendency_icon_0': tenicons_shum[0],
+        'soil_hum_0': strs_shum[0],
+        'soil_hum_tendency_icon_1': tenicons_shum[1],
+        'soil_hum_1': strs_shum[1],
         'date': _current_date
     }
 
