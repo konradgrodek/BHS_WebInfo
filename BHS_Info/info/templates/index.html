@@ -35,14 +35,14 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_external}}</b><br>
-            Na polu<br>
+            <a href="/temp/ext">Na polu</a><br>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_external}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_internal}}</b><br>
-            W domu
+            <a href="/temp/int">W domu</a><br>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_internal}}</span></p>
           </div>
         </div>
@@ -143,8 +143,8 @@
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{soil_hum_0}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_0}}">
-            <b>{{soil_hum_1}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_1}}"><br>
+            Świerk: <b>{{soil_hum_0}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_0}}">
+            Bunkier: <b>{{soil_hum_1}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_1}}"><br>
             Wilgotność gleby
           </div>
         </div>

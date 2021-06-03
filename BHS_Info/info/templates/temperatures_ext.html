@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    {% load static %}
+    <link rel="icon" href="{% static 'info/house-fill.svg' %}" sizes="any">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="30">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <title>Pytasz czy jest ciepło?</title>
+  </head>
+  <body>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
+    <br>
+
+    <div class="container" align="center">
+      {{date}}
+    </div>
+
+    <h1 align="center">Temperatura na polu</h1>
+    <br>
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{temp_external}}</b><br>
+            Czujnik pieca<br>
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_external}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{temp_chiminey}}</b><br>
+            Przy kominie
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_chiminey}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{temp_roof}}</b><br>
+            Stacja pogodowa
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_roof}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{temp_garden}}</b><br>
+            Ogród
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_garden}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{temp_grass}}</b><br>
+            Przy gruncie
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_grass}}</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        {{temp_external_graph}}
+      </div>
+    </div>
+
+  </body>
+</html>
