@@ -62,8 +62,27 @@
       <div class="row gx-5">
         <div class="col-sm">
           <div class="p-3 border bg-light">
+            {{wind_dir}} <img src="{% static 'info/' %}{{wind_dir_icon}}" height="30"><br>
+            Wiatr: {{wind_speed}} (poryw: {{wind_peak}})
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{rain_mm}}</b><br>
+            Deszcz w ciągu ostatnich {{rain_obs_h}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
             <img src="{% static 'info/' %}{{sky_state_icon}}" height="30"><br>
-            <span style="font-size:0.8em">Światło: {{daylight_perc}}% Deszcz: {{rain_perc}}%</span>
+            <span style="font-size:0.8em">Światło: {{daylight_perc}}% </span>
           </div>
         </div>
         <div class="col-sm">
@@ -82,6 +101,44 @@
     </div>
 
     <br>
+
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        <div class="col-sm">
+          Elektrownia słoneczna<br>
+          <span style="font-size:0.8em">{{tm_sol}}</span>
+        </div>
+      </div>
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{sol_prod_now_w}} W</b><br>
+            {{sol_prod_now_progress}}
+            <div>Teraz</div>
+            <br>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <b>{{sol_prod_today}} kWh</b><br>
+            Dzisiaj
+            <br>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Minimum: <b>{{sol_prod_h_min_w}} W</b>, {{sol_prod_h_min_perc}}%<br>
+            Średnia: <b>{{sol_prod_h_avg_w}} W</b>, {{sol_prod_h_avg_perc}}%<br>
+            Maksimum: <b>{{sol_prod_h_max_w}} W</b>, {{sol_prod_h_max_perc}}%<br>
+            Ostatnia godzina
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
@@ -145,6 +202,7 @@
           <div class="p-3 border bg-light">
             Świerk: <b>{{soil_hum_0}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_0}}">
             Bunkier: <b>{{soil_hum_1}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_1}}"><br>
+            Piwonie: <b>{{soil_hum_2}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_2}}"><br>
             Wilgotność gleby
           </div>
         </div>

@@ -2,25 +2,9 @@ import requests
 from .restconfig import *
 from core.bean import *
 
+from django.utils.safestring import mark_safe
+
 rest_configuration = RestConfig()
-
-
-# class BackendException(Exception):
-#
-#     def __init__(self, response: HttpResponse):
-#         self.http_resonse = response
-
-
-# class BackendCall:
-#
-#     def __init__(self, backend_url: str):
-#         self.backend_url = backend_url
-#         self.response = None
-#
-#     def call(self) -> int:
-#         self.response = requests.get(self.backend_url)
-#         return self.response.status_code
-#
 
 # sensor locations
 SENSOR_LOC_EXTERNAL = 'External'
@@ -60,17 +44,19 @@ class RestBackend:
     def _get_json(self, _url: str):
         return self._get(_url).json() if self._get(_url).status_code == 200 else None
 
-    def _safe_json_get(self, endpoint: str):
+    def _safe_json_get(self, endpoint: RestEndPoint):
         try:
-            resp = json_to_bean(endpoint)
+            resp = json_to_bean(self._get_json(endpoint.get_url()))
         except ValueError as err:
             resp = ErrorJsonBean(repr(err))
         except requests.Timeout:
             resp = NotAvailableJsonBean()
         except requests.ConnectionError as err:
-            resp = ErrorJsonBean(repr(err))
+            resp = ErrorJsonBean('Connection issue')
         except requests.HTTPError as err:
-            resp = ErrorJsonBean(repr(err))
+            resp = ErrorJsonBean('HTTP Error')
+        except Exception as exc:
+            resp = ErrorJsonBean('Unknown exception')
 
         return resp if type(resp) == list or resp.has_succeeded() else None
 
@@ -85,7 +71,20 @@ class SVGGraph(RestBackend):
         response.raise_for_status()
         _xml = response.text
         # wipe-away the comments, just leave the plain XML, which can be later pasted into web page
-        return _xml[_xml.index('<svg'):]
+        _xml = _xml[_xml.index('<svg'):] if _xml.find('<svg') > 0 else ''
+        return mark_safe(_xml)
+
+
+class ProgressBar(SVGGraph):
+
+    def __init__(self):
+        SVGGraph.__init__(self)
+
+    def get_progress_bar(self, percentage: int, size=None, show_border: bool = False) -> str:
+        return self._svg(rest_configuration.get_progress_bar().get_url(),
+                         ProgressBarRESTInterface(progress=percentage,
+                                                  size=size,
+                                                  show_border=show_border).params_for_get())
 
 
 class TemperatureGraph(SVGGraph):
@@ -95,10 +94,10 @@ class TemperatureGraph(SVGGraph):
 
     def get_temp_daily_graph(self, sensor_location: str, graph_title: str, the_date=None) -> str:
         return self._svg(rest_configuration.get_graph_temperature().get_url(),
-                         TemperatureGraphInterface(
+                         TemperatureGraphRESTInterface(
                              sensor_location=sensor_location,
                              the_date=the_date,
-                             graph_title=graph_title).params())
+                             graph_title=graph_title).params_for_get())
 
 
 class TemperatureInfo(RestBackend):
@@ -121,7 +120,7 @@ class TemperatureInfo(RestBackend):
     def get_temp_external(self) -> TemperatureReadingJson:
         return self._get_temp(SENSOR_LOC_EXTERNAL)
 
-    def get_temp_chiminey(self) -> TemperatureReadingJson:
+    def get_temp_chimney(self) -> TemperatureReadingJson:
         return self._get_temp(SENSOR_LOC_CHIMINEY)
 
     def get_temp_roof(self) -> TemperatureReadingJson:
@@ -138,10 +137,10 @@ class TemperatureInfo(RestBackend):
 
     def get_temp_external_best_available(self) -> TemperatureReadingJson:
         ext = self.get_temp_external()
-        chm = self.get_temp_chiminey()
+        gar = self.get_temp_garden()
+        chm = self.get_temp_chimney()
         roo = self.get_temp_roof()
-        whs = self.get_temp_weather_station()
-        return ext if ext else chm if chm else roo if roo else whs
+        return ext if ext else gar if gar else chm if chm else roo
 
     def get_temp_internal(self) -> TemperatureReadingJson:
         return self.get_temp_office()
@@ -167,6 +166,9 @@ class TemperatureInfo(RestBackend):
     def get_temp_rpi_violet(self) -> TemperatureReadingJson:
         return self._get_temp(SENSOR_LOC_RPIVIOLET)
 
+    def get_temp(self, _sensor_loc) -> TemperatureReadingJson:
+        return self._get_temp(_sensor_loc)
+
 
 class MainPageInfo(TemperatureInfo):
 
@@ -179,22 +181,28 @@ class MainPageInfo(TemperatureInfo):
         TemperatureInfo.__init__(self)
 
     def get_cesspit_level(self) -> CesspitInterpretedReadingJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_cesspit_level_endpoint().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_cesspit_level_endpoint())
 
     def get_humidity_in(self) -> ValueTendencyJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_humidity_in_endpoint().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_humidity_in_endpoint())
 
     def get_pressure(self) -> ValueTendencyJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_pressure_endpoint().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_pressure_endpoint())
 
     def get_air_quality(self) -> AirQualityInterpretedReadingJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_air_quality_endpoint().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_air_quality_endpoint())
 
     def get_daylight(self) -> DaylightInterpretedReadingJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_daylight_endpoint().get_url()))
-
-    def get_rain(self) -> RainReadingJson:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_rain_endpoint().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_daylight_endpoint())
 
     def get_soil_moisture(self) -> list:
-        return self._safe_json_get(self._get_json(rest_configuration.get_current_soil_moisture().get_url()))
+        return self._safe_json_get(rest_configuration.get_current_soil_moisture_endpoint())
+
+    def get_solar_plant(self) -> SolarPlantInterpretedReadingJson:
+        return self._safe_json_get(rest_configuration.get_current_solar_plant_endpoint())
+
+    def get_precipitation(self) -> PrecipitationObservationsReadingJson:
+        return self._safe_json_get(rest_configuration.get_current_precipitation_endpoint())
+
+    def get_wind(self) -> WindObservationsReadingJson:
+        return self._safe_json_get(rest_configuration.get_current_wind_endpoint())

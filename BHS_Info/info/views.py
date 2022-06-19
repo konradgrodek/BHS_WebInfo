@@ -1,11 +1,15 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.template import loader
-from django.utils.safestring import mark_safe
+
+from datetime import timedelta
+
+import logging as log
 
 from .restinfo import *
 
 UNKNOWN = '?'
 CELSIUS = '\u2103'
+REQUEST_DATE_FORMAT = '%Y-%m-%d'
 
 
 def index(request):
@@ -24,7 +28,10 @@ def index(request):
     air_quality = information.get_air_quality()
     pressure = information.get_pressure()
     daylight = information.get_daylight()
-    rain = information.get_rain()
+    solar_plant = information.get_solar_plant()
+    precipitation = information.get_precipitation()
+    wind = information.get_wind()
+    progress_bars = ProgressBar()
 
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
 
@@ -75,7 +82,7 @@ def index(request):
 
     tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality else ''
 
-    if rain.is_raining:
+    if precipitation.has_succeeded() and precipitation.is_raining:
         sky_state_icon = 'cloud-rain.svg'  # heavy?
     elif daylight.time_of_day == TimeOfDay.NIGHT:
         sky_state_icon = 'moon.svg'
@@ -91,6 +98,43 @@ def index(request):
     soil_hums = information.get_soil_moisture()
     tenicons_shum = [_tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY] for soil_hum in soil_hums]
     strs_shum = [f'{soil_hum.current_value:.1f}' for soil_hum in soil_hums]
+
+    tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant else UNKNOWN
+    sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant else UNKNOWN
+    sol_prod_now_perc = str(solar_plant.current_production_perc) if solar_plant else '0'
+    sol_prod_now_progress_bar = progress_bars.get_progress_bar(
+        percentage=solar_plant.current_production_perc, size=(4, 0.32), show_border=True)
+    sol_prod_today = f'{solar_plant.reading.daily_production_kwh:.1f}' if solar_plant else UNKNOWN
+    sol_prod_h_min_w = str(solar_plant.reading.hourly_min_w) if solar_plant else UNKNOWN
+    sol_prod_h_min_perc = str(solar_plant.hourly_min_perc) if solar_plant else '0'
+    sol_prod_h_avg_w = str(solar_plant.reading.hourly_avg_w) if solar_plant else UNKNOWN
+    sol_prod_h_avg_perc = str(solar_plant.hourly_avg_perc) if solar_plant else '0'
+    sol_prod_h_max_w = str(solar_plant.reading.hourly_max_w) if solar_plant else UNKNOWN
+    sol_prod_h_max_perc = str(solar_plant.hourly_max_perc) if solar_plant else '0'
+
+    # wind direction
+    _wind_direction_icons = {
+        WindDirection.S: 'arrow-up-circle.svg',
+        WindDirection.SW: 'arrow-up-right-circle.svg',
+        WindDirection.W: 'arrow-right-circle.svg',
+        WindDirection.NW: 'arrow-down-right-circle.svg',
+        WindDirection.N: 'arrow-down-circle.svg',
+        WindDirection.NE: 'arrow-down-left-circle.svg',
+        WindDirection.E: 'arrow-left-circle.svg',
+        WindDirection.SE: 'arrow-up-left-circle.svg',
+        WindDirection.UNKNOWN: 'circle.svg'
+    }
+    # take direction and peak from long-term observations, current speed from short-term
+    wind_dir = wind.long_term_observation.direction if wind.has_succeeded() else WindDirection.UNKNOWN
+    wind_dir_icon = _wind_direction_icons[wind_dir]
+    # wind_dir_var = f'{int(wind.long_term_observation.direction_var)}%' if wind.has_succeeded() else UNKNOWN
+    wind_peak = f'{int(wind.long_term_observation.wind_peak)} km/h' if wind.has_succeeded() else UNKNOWN
+    wind_speed = f'{int(wind.short_term_observation.wind_speed)} km/h' if wind.has_succeeded() else UNKNOWN
+    # wind_speed_var = f'{int(wind.short_term_observation.wind_variance)}%' if wind.has_succeeded() else UNKNOWN
+
+    # precipitation
+    rain_mm = f'{precipitation.precipitation_mm:.1f} mm' if precipitation.has_succeeded() else UNKNOWN
+    rain_obs_h = f'{precipitation.observation_duration_h} h' if precipitation.has_succeeded() else UNKNOWN
 
     context = {
         'temp_external': str_temp_external,
@@ -119,11 +163,29 @@ def index(request):
         'sunset': daylight.sunset,
         'sky_state_icon': sky_state_icon,
         'daylight_perc': daylight.original_reading.luminescence_perc,
-        'rain_perc': rain.volume_perc,
         'soil_hum_tendency_icon_0': tenicons_shum[0],
         'soil_hum_0': strs_shum[0],
         'soil_hum_tendency_icon_1': tenicons_shum[1],
         'soil_hum_1': strs_shum[1],
+        'soil_hum_tendency_icon_2': tenicons_shum[2],
+        'soil_hum_2': strs_shum[2],
+        'tm_sol': tm_sol,
+        'sol_prod_now_w': sol_prod_now_w,
+        'sol_prod_now_perc': sol_prod_now_perc,
+        'sol_prod_now_progress': sol_prod_now_progress_bar,
+        'sol_prod_today': sol_prod_today,
+        'sol_prod_h_min_w': sol_prod_h_min_w,
+        'sol_prod_h_min_perc': sol_prod_h_min_perc,
+        'sol_prod_h_avg_w': sol_prod_h_avg_w,
+        'sol_prod_h_avg_perc': sol_prod_h_avg_perc,
+        'sol_prod_h_max_w': sol_prod_h_max_w,
+        'sol_prod_h_max_perc': sol_prod_h_max_perc,
+        'wind_dir': wind_dir.name,
+        'wind_dir_icon': wind_dir_icon,
+        'wind_speed': wind_speed,
+        'wind_peak': wind_peak,
+        'rain_mm': rain_mm,
+        'rain_obs_h': rain_obs_h,
         'date': _current_date
     }
 
@@ -139,15 +201,15 @@ def external_temperature(request):
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
 
     temp_external = information.get_temp_external()
-    temp_chiminey = information.get_temp_chiminey()
+    temp_chimney = information.get_temp_chimney()
     temp_roof = information.get_temp_roof()
     temp_garden = information.get_temp_garden()
     temp_grass = information.get_temp_grass()
 
     str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external else UNKNOWN
     tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external else ''
-    str_temp_chiminey = f'{temp_chiminey.temperature:.1f} {CELSIUS}' if temp_chiminey else UNKNOWN
-    tm_temp_chiminey = temp_chiminey.timestamp.strftime('%H:%M') if temp_chiminey else ''
+    str_temp_chimney = f'{temp_chimney.temperature:.1f} {CELSIUS}' if temp_chimney else UNKNOWN
+    tm_temp_chimney = temp_chimney.timestamp.strftime('%H:%M') if temp_chimney else ''
     str_temp_roof = f'{temp_roof.temperature:.1f} {CELSIUS}' if temp_roof else UNKNOWN
     tm_temp_roof = temp_roof.timestamp.strftime('%H:%M') if temp_roof else ''
     str_temp_garden = f'{temp_garden.temperature:.1f} {CELSIUS}' if temp_garden else UNKNOWN
@@ -155,14 +217,15 @@ def external_temperature(request):
     str_temp_grass = f'{temp_grass.temperature:.1f} {CELSIUS}' if temp_grass else UNKNOWN
     tm_temp_grass = temp_grass.timestamp.strftime('%H:%M') if temp_grass else ''
 
-    temp_external_graph_svg = mark_safe(graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_EXTERNAL,
-                                                                   graph_title='Temperatura zewnętrzna - czujnik pieca'))
+    temp_external_graph_svg = mark_safe(
+        graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_EXTERNAL,
+                                   graph_title='Temperatura zewnętrzna - czujnik pieca'))
 
     context = {
         'temp_external': str_temp_external,
         'tm_temp_external': tm_temp_external,
-        'temp_chiminey': str_temp_chiminey,
-        'tm_temp_chiminey': tm_temp_chiminey,
+        'temp_chimney': str_temp_chimney,
+        'tm_temp_chimney': tm_temp_chimney,
         'temp_roof': str_temp_roof,
         'tm_temp_roof': tm_temp_roof,
         'temp_garden': str_temp_garden,
@@ -216,3 +279,83 @@ def internal_temperature(request):
 
     return HttpResponse(template.render(context, request))
 
+
+# def any_temperature(request):
+#     sensor_loc = request.GET.get('sensor')
+#     sensor_name = request.GET.get('name')
+#     req_date = request.GET.get('date')
+#
+#     if not sensor_loc:
+#         return HttpResponseBadRequest()
+#
+#     if not sensor_name:
+#         sensor_name = UNKNOWN
+#
+#     _date = datetime.today()
+#     if req_date:
+#         _date = datetime.strptime(req_date, REQUEST_DATE_FORMAT)
+#
+#     _is_today = (_date - datetime.today()).days < 1
+#
+#     _date_minus = _date - timedelta(days=1)
+#     _date_plus = _date + timedelta(days=1)
+#
+#     _str_date = _date.strftime(REQUEST_DATE_FORMAT)
+#     _str_date_minus = _date_minus.strftime(REQUEST_DATE_FORMAT)
+#     _str_date_plus = _date_plus.strftime(REQUEST_DATE_FORMAT)
+#
+#     template = loader.get_template('temperature.html')
+#
+#     information = TemperatureInfo()
+#     graph = TemperatureGraph()
+#
+#     context = {
+#         'sensor_name': sensor_name,
+#         'temp_current': information.get_,
+#         'tm_temp_current': tm_temp_current,
+#         'temp_min': temp_min,
+#         'tm_temp_min': tm_temp_min,
+#         'temp_max': temp_max,
+#         'tm_temp_max': tm_temp_max,
+#         'temp_graph': graph.get_temp_daily_graph(sensor_location=sensor_loc, graph_title=f'Temperatura @ {sensor_name}', the_date=_date)
+#     }
+#
+#
+#
+#
+#     _temp = information.get_temp(sensor_loc)
+#     temp_chiminey = information.get_temp_chiminey()
+#     temp_roof = information.get_temp_roof()
+#     temp_garden = information.get_temp_garden()
+#     temp_grass = information.get_temp_grass()
+#
+#     str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external else UNKNOWN
+#     tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external else ''
+#     str_temp_chiminey = f'{temp_chiminey.temperature:.1f} {CELSIUS}' if temp_chiminey else UNKNOWN
+#     tm_temp_chiminey = temp_chiminey.timestamp.strftime('%H:%M') if temp_chiminey else ''
+#     str_temp_roof = f'{temp_roof.temperature:.1f} {CELSIUS}' if temp_roof else UNKNOWN
+#     tm_temp_roof = temp_roof.timestamp.strftime('%H:%M') if temp_roof else ''
+#     str_temp_garden = f'{temp_garden.temperature:.1f} {CELSIUS}' if temp_garden else UNKNOWN
+#     tm_temp_garden = temp_garden.timestamp.strftime('%H:%M') if temp_garden else ''
+#     str_temp_grass = f'{temp_grass.temperature:.1f} {CELSIUS}' if temp_grass else UNKNOWN
+#     tm_temp_grass = temp_grass.timestamp.strftime('%H:%M') if temp_grass else ''
+#
+#     temp_external_graph_svg = mark_safe(graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_EXTERNAL,
+#                                                                    graph_title='Temperatura zewnętrzna - czujnik pieca'))
+#
+#     context = {
+#         'temp_external': str_temp_external,
+#         'tm_temp_external': tm_temp_external,
+#         'temp_chiminey': str_temp_chiminey,
+#         'tm_temp_chiminey': tm_temp_chiminey,
+#         'temp_roof': str_temp_roof,
+#         'tm_temp_roof': tm_temp_roof,
+#         'temp_garden': str_temp_garden,
+#         'tm_temp_garden': tm_temp_garden,
+#         'temp_grass': str_temp_grass,
+#         'tm_temp_grass': tm_temp_grass,
+#         'temp_external_graph': temp_external_graph_svg,
+#         'date': _current_date
+#     }
+#
+#     return HttpResponse(template.render(context, request))

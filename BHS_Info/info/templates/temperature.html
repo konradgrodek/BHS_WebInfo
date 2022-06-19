@@ -11,7 +11,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 
-    <title>Pytasz czy jest ciepło?</title>
+    <title>Szczególiki temperaturki</title>
   </head>
   <body>
     <!-- Bootstrap Bundle with Popper -->
@@ -23,44 +23,30 @@
       {{date}}
     </div>
 
-    <h1 align="center">Temperatura na polu</h1>
+    <h1 align="center">{{sensor_name}}</h1>
     <br>
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_external}}</b><br>
-            Czujnik pieca<br>
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_external}}</span></p>
+            <b>{{temp_current}}</b><br>
+            Obecnie<br>
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_current}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_chimney}}</b><br>
-            Przy kominie
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_chimney}}</span></p>
+            <b>{{temp_min}}</b><br>
+            Minimum
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_min}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_roof}}</b><br>
-            Stacja pogodowa
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_roof}}</span></p>
-          </div>
-        </div>
-        <div class="col-sm">
-          <div class="p-3 border bg-light">
-            <b>{{temp_garden}}</b><br>
-            Ogród
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_garden}}</span></p>
-          </div>
-        </div>
-        <div class="col-sm">
-          <div class="p-3 border bg-light">
-            <b>{{temp_grass}}</b><br>
-            Przy gruncie
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_grass}}</span></p>
+            <b>{{temp_max}}</b><br>
+            Maksimum
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_max}}</span></p>
           </div>
         </div>
       </div>
@@ -68,7 +54,7 @@
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
-        {{temp_external_graph}}
+        {{temp_graph}}
       </div>
     </div>
 

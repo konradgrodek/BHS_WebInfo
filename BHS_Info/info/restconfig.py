@@ -37,7 +37,11 @@ class RestConfig(ConfigParser):
     OPTION_CURRENT_DAYLIGHT = 'current-daylight'
     OPTION_CURRENT_RAIN = 'current-rain'
     OPTION_CURRENT_SOIL_MOISTURE = 'current-soil-moisture'
+    OPTION_CURRENT_SOLAR_PLANT = 'current-solar-plant'
+    OPTION_CURRENT_PRECIPITATION = 'current-precipitation'
+    OPTION_CURRENT_WIND = 'current-wind'
     OPTION_GRAPH_TEMPERATURE = 'graph-temperature'
+    OPTION_PROGRESS_BAR = 'progress-bar'
 
     def __init__(self):
         ConfigParser.__init__(self)
@@ -73,17 +77,33 @@ class RestConfig(ConfigParser):
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_DAYLIGHT))
 
-    def get_current_rain_endpoint(self) -> RestEndPoint:
-        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
-                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
-                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_RAIN))
-
-    def get_current_soil_moisture(self) -> RestEndPoint:
+    def get_current_soil_moisture_endpoint(self) -> RestEndPoint:
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_SOIL_MOISTURE))
+
+    def get_current_solar_plant_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_SOLAR_PLANT))
+
+    def get_current_precipitation_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_PRECIPITATION))
+
+    def get_current_wind_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_WIND))
 
     def get_graph_temperature(self) -> RestEndPoint:
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_TEMPERATURE))
+
+    def get_progress_bar(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_PROGRESS_BAR))
+
