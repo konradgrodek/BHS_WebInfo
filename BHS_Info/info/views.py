@@ -18,7 +18,7 @@ def index(request):
     information = MainPageInfo()
 
     # note: by convention, the rest-client do not raise any deliberated exceptions
-    # if any sort of an error occurs, the client returns empty objects (None)
+    # if any sort of an error occurs, the client returns Error or NotAvailable beans
     # it is up to front-end to handle unknown information
     temp_internal = information.get_temp_internal()
     temp_external = information.get_temp_external_best_available()
@@ -47,40 +47,40 @@ def index(request):
         CesspitState.CRITICAL: 'bg-danger'
     }
 
-    str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external else UNKNOWN
-    str_temp_internal = f'{temp_internal.temperature:.1f} {CELSIUS}' if temp_internal else UNKNOWN
-    str_temp_bunker = f'{temp_bunker.temperature:.1f} {CELSIUS}' if temp_bunker else UNKNOWN
-    tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external else ''
-    tm_temp_internal = temp_internal.timestamp.strftime('%H:%M') if temp_internal else ''
-    tm_temp_bunker = temp_bunker.timestamp.strftime('%H:%M') if temp_bunker else ''
+    str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external.has_succeeded() else UNKNOWN
+    str_temp_internal = f'{temp_internal.temperature:.1f} {CELSIUS}' if temp_internal.has_succeeded() else UNKNOWN
+    str_temp_bunker = f'{temp_bunker.temperature:.1f} {CELSIUS}' if temp_bunker.has_succeeded() else UNKNOWN
+    tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external.has_succeeded() else ''
+    tm_temp_internal = temp_internal.timestamp.strftime('%H:%M') if temp_internal.has_succeeded() else ''
+    tm_temp_bunker = temp_bunker.timestamp.strftime('%H:%M') if temp_bunker.has_succeeded() else ''
 
-    str_humidity_in = f'{humidity_in.current_value:.0f}' if humidity_in else UNKNOWN
-    tenicon_hum_in = _tendency_icons[humidity_in.tendency if humidity_in else Tendency.STEADY]
+    str_humidity_in = f'{humidity_in.current_value:.0f}' if humidity_in.has_succeeded() else UNKNOWN
+    tenicon_hum_in = _tendency_icons[humidity_in.tendency if humidity_in.has_succeeded() else Tendency.STEADY]
 
-    str_pressure = f'{pressure.current_value:.0f}' if pressure else UNKNOWN
-    tenicon_pressure = _tendency_icons[pressure.tendency if pressure else Tendency.STEADY]
+    str_pressure = f'{pressure.current_value:.0f}' if pressure.has_succeeded() else UNKNOWN
+    tenicon_pressure = _tendency_icons[pressure.tendency if pressure.has_succeeded() else Tendency.STEADY]
 
-    cesspit_state = _cesspit_states[cesspit.state] if cesspit else ''
-    cesspit_level_label = f'{cesspit.original_reading.fill:.2f}' if cesspit else UNKNOWN
-    cesspit_level = str(int(cesspit.original_reading.fill)) if cesspit else '0'
-    cesspit_reading_state = '' if not cesspit else 'KO' if cesspit.failure_detected else 'OK'
-    tm_cesspit = cesspit.original_reading.timestamp.strftime('%H:%M') if cesspit else ''
+    cesspit_state = _cesspit_states[cesspit.state] if cesspit.has_succeeded() else ''
+    cesspit_level_label = f'{cesspit.original_reading.fill:.2f}' if cesspit.has_succeeded() else UNKNOWN
+    cesspit_level = str(int(cesspit.original_reading.fill)) if cesspit.has_succeeded() else '0'
+    cesspit_reading_state = '' if not cesspit.has_succeeded() else 'KO' if cesspit.failure_detected else 'OK'
+    tm_cesspit = cesspit.original_reading.timestamp.strftime('%H:%M') if cesspit.has_succeeded() else ''
 
-    aq_pm_10_label = air_quality.pm_10 if air_quality else UNKNOWN
-    aq_pm_10_level = 0 if not air_quality else air_quality.pm_10 if air_quality.pm_10 <= 100 else 100
-    aq_pm_10_color = '' if not air_quality \
+    aq_pm_10_label = air_quality.pm_10 if air_quality.has_succeeded() else UNKNOWN
+    aq_pm_10_level = 0 if not air_quality.has_succeeded() else air_quality.pm_10 if air_quality.pm_10 <= 100 else 100
+    aq_pm_10_color = '' if not air_quality.has_succeeded() \
         else 'bg-success' if air_quality.pm_10 < 100 \
         else 'bg-warning' if air_quality.pm_10 < 200 \
         else 'bg-danger'
 
-    aq_pm_2_5_label = air_quality.pm_2_5 if air_quality else UNKNOWN
-    aq_pm_2_5_level = 0 if not air_quality else air_quality.pm_2_5 if air_quality.pm_2_5 <= 100 else 100
-    aq_pm_2_5_color = '' if not air_quality \
+    aq_pm_2_5_label = air_quality.pm_2_5 if air_quality.has_succeeded() else UNKNOWN
+    aq_pm_2_5_level = 0 if not air_quality.has_succeeded() else air_quality.pm_2_5 if air_quality.pm_2_5 <= 100 else 100
+    aq_pm_2_5_color = '' if not air_quality.has_succeeded() \
         else 'bg-success' if air_quality.pm_2_5 < 100 \
         else 'bg-warning' if air_quality.pm_2_5 < 200 \
         else 'bg-danger'
 
-    tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality else ''
+    tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality.has_succeeded() else ''
 
     if precipitation.has_succeeded() and precipitation.is_raining:
         sky_state_icon = 'cloud-rain.svg'  # heavy?
@@ -99,29 +99,29 @@ def index(request):
     tenicons_shum = [_tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY] for soil_hum in soil_hums]
     strs_shum = [f'{soil_hum.current_value:.1f}' for soil_hum in soil_hums]
 
-    tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant else UNKNOWN
-    sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant else UNKNOWN
-    sol_prod_now_perc = str(solar_plant.current_production_perc) if solar_plant else '0'
+    tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_now_perc = str(solar_plant.current_production_perc) if solar_plant.has_succeeded() else '0'
     sol_prod_now_progress_bar = progress_bars.get_progress_bar(
         percentage=solar_plant.current_production_perc, size=(4, 0.32), show_border=True)
-    sol_prod_today = f'{solar_plant.reading.daily_production_kwh:.1f}' if solar_plant else UNKNOWN
-    sol_prod_h_min_w = str(solar_plant.reading.hourly_min_w) if solar_plant else UNKNOWN
-    sol_prod_h_min_perc = str(solar_plant.hourly_min_perc) if solar_plant else '0'
-    sol_prod_h_avg_w = str(solar_plant.reading.hourly_avg_w) if solar_plant else UNKNOWN
-    sol_prod_h_avg_perc = str(solar_plant.hourly_avg_perc) if solar_plant else '0'
-    sol_prod_h_max_w = str(solar_plant.reading.hourly_max_w) if solar_plant else UNKNOWN
-    sol_prod_h_max_perc = str(solar_plant.hourly_max_perc) if solar_plant else '0'
+    sol_prod_today = f'{solar_plant.reading.daily_production_kwh:.1f}' if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_h_min_w = str(solar_plant.reading.hourly_min_w) if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_h_min_perc = str(solar_plant.hourly_min_perc) if solar_plant.has_succeeded() else '0'
+    sol_prod_h_avg_w = str(solar_plant.reading.hourly_avg_w) if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_h_avg_perc = str(solar_plant.hourly_avg_perc) if solar_plant.has_succeeded() else '0'
+    sol_prod_h_max_w = str(solar_plant.reading.hourly_max_w) if solar_plant.has_succeeded() else UNKNOWN
+    sol_prod_h_max_perc = str(solar_plant.hourly_max_perc) if solar_plant.has_succeeded() else '0'
 
     # wind direction
     _wind_direction_icons = {
         WindDirection.S: 'arrow-up-circle.svg',
-        WindDirection.SW: 'arrow-up-right-circle.svg',
+        WindDirection.SE: 'arrow-up-right-circle.svg',
         WindDirection.W: 'arrow-right-circle.svg',
-        WindDirection.NW: 'arrow-down-right-circle.svg',
+        WindDirection.NE: 'arrow-down-right-circle.svg',
         WindDirection.N: 'arrow-down-circle.svg',
-        WindDirection.NE: 'arrow-down-left-circle.svg',
+        WindDirection.NW: 'arrow-down-left-circle.svg',
         WindDirection.E: 'arrow-left-circle.svg',
-        WindDirection.SE: 'arrow-up-left-circle.svg',
+        WindDirection.SW: 'arrow-up-left-circle.svg',
         WindDirection.UNKNOWN: 'circle.svg'
     }
     # take direction and peak from long-term observations, current speed from short-term
@@ -180,7 +180,7 @@ def index(request):
         'sol_prod_h_avg_perc': sol_prod_h_avg_perc,
         'sol_prod_h_max_w': sol_prod_h_max_w,
         'sol_prod_h_max_perc': sol_prod_h_max_perc,
-        'wind_dir': wind_dir.name,
+        'wind_dir': wind_dir.name if wind_dir != WindDirection.UNKNOWN else UNKNOWN,
         'wind_dir_icon': wind_dir_icon,
         'wind_speed': wind_speed,
         'wind_peak': wind_peak,

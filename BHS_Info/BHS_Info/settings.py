@@ -114,21 +114,22 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
-        'file': {
-            'level': 'INFO',
-            'filters': ['require_debug_false'],
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/bhs/web-info.log',
-        },
+        # FIXME keeps rising   PermissionDenied...
+        # 'file': {
+        #     'level': 'INFO',
+        #     'filters': ['require_debug_false'],
+        #     'class': 'logging.FileHandler',
+        #     'filename': '/var/log/bhs/web-info/bhs.log',
+        # },
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'], # 'file',
             'level': 'DEBUG',
             'propagate': True,
         },
         'bhs-info': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'], # 'file',
             'level': 'DEBUG',
             'propagate': True,
         }

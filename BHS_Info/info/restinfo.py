@@ -58,7 +58,7 @@ class RestBackend:
         except Exception as exc:
             resp = ErrorJsonBean('Unknown exception')
 
-        return resp if type(resp) == list or resp.has_succeeded() else None
+        return resp
 
 
 class SVGGraph(RestBackend):
@@ -115,7 +115,7 @@ class TemperatureInfo(RestBackend):
                 for t in all_temps:
                     self.temperatures[t.sensor_location] = t
             _temp = self.temperatures.get(location)
-        return _temp
+        return _temp if _temp is not None else NotAvailableJsonBean()
 
     def get_temp_external(self) -> TemperatureReadingJson:
         return self._get_temp(SENSOR_LOC_EXTERNAL)
