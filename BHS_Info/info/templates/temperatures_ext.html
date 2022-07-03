@@ -14,6 +14,7 @@
     <title>Pytasz czy jest ciepło?</title>
   </head>
   <body>
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
@@ -31,41 +32,41 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_external}}</b><br>
-            Czujnik pieca<br>
+            <a href="/temp/any?sensor=External&name=czujnik pieca&date={{date_short}}">Czujnik pieca</a><br>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_external}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_chimney}}</b><br>
-            Przy kominie
+            <a href="/temp/any?sensor=Chiminey&name=komin&date={{date_short}}">Przy kominie</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_chimney}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_roof}}</b><br>
-            Stacja pogodowa
+            <a href="/temp/any?sensor=Weather-Station&name=stacja pogodowa&date={{date_short}}">Stacja pogodowa</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_roof}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_garden}}</b><br>
-            Ogród
+            <a href="/temp/any?sensor=Garden&name=ogród&date={{date_short}}">Ogród</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_garden}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_grass}}</b><br>
-            Przy gruncie
+            <a href="/temp/any?sensor=Grass&name=przy gruncie&date={{date_short}}">Przy gruncie</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_grass}}</span></p>
           </div>
         </div>
       </div>
     </div>
-
+    <br>
     <div class="container px-4" align="center">
       <div class="row gx-5">
         {{temp_external_graph}}

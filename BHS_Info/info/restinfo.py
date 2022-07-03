@@ -41,12 +41,13 @@ class RestBackend:
             self._responses[cache_key] = response
         return response
 
-    def _get_json(self, _url: str):
-        return self._get(_url).json() if self._get(_url).status_code == 200 else None
+    def _get_json(self, _url: str, params=None):
+        response = self._get(_url, params)
+        return response.json() if response.status_code == 200 else None
 
-    def _safe_json_get(self, endpoint: RestEndPoint):
+    def _safe_json_get(self, endpoint: RestEndPoint, params=None):
         try:
-            resp = json_to_bean(self._get_json(endpoint.get_url()))
+            resp = json_to_bean(self._get_json(endpoint.get_url(), params))
         except ValueError as err:
             resp = ErrorJsonBean(repr(err))
         except requests.Timeout:
@@ -81,7 +82,7 @@ class ProgressBar(SVGGraph):
         SVGGraph.__init__(self)
 
     def get_progress_bar(self, percentage: int, size=None, show_border: bool = False) -> str:
-        return self._svg(rest_configuration.get_progress_bar().get_url(),
+        return self._svg(rest_configuration.get_progress_bar_endpoint().get_url(),
                          ProgressBarRESTInterface(progress=percentage,
                                                   size=size,
                                                   show_border=show_border).params_for_get())
@@ -93,7 +94,7 @@ class TemperatureGraph(SVGGraph):
         SVGGraph.__init__(self)
 
     def get_temp_daily_graph(self, sensor_location: str, graph_title: str, the_date=None) -> str:
-        return self._svg(rest_configuration.get_graph_temperature().get_url(),
+        return self._svg(rest_configuration.get_graph_temperature_endpoint().get_url(),
                          TemperatureGraphRESTInterface(
                              sensor_location=sensor_location,
                              the_date=the_date,
@@ -206,3 +207,16 @@ class MainPageInfo(TemperatureInfo):
 
     def get_wind(self) -> WindObservationsReadingJson:
         return self._safe_json_get(rest_configuration.get_current_wind_endpoint())
+
+
+class TemperatureDailyStatistics(RestBackend):
+
+    def __init__(self):
+        RestBackend.__init__(self)
+
+    def get_daily_statistics(self, sensor_location: str, the_date: datetime) -> TemperatureDailyStatistics:
+        return self._safe_json_get(
+            rest_configuration.get_history_temperature_daily_endpoint(),
+            params=TemperatureStatisticsRESTInterface(
+                sensor_location=sensor_location,
+                the_date=the_date).params_for_get())

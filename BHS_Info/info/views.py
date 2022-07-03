@@ -8,6 +8,7 @@ import logging as log
 from .restinfo import *
 
 UNKNOWN = '?'
+UNKNOWN_ICON = 'question.svg'
 CELSIUS = '\u2103'
 REQUEST_DATE_FORMAT = '%Y-%m-%d'
 
@@ -34,6 +35,7 @@ def index(request):
     progress_bars = ProgressBar()
 
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
+    _short_date = datetime.today().strftime(REQUEST_DATE_FORMAT)
 
     _tendency_icons = {
         Tendency.RISING: 'arrow-up-right.svg',
@@ -84,20 +86,27 @@ def index(request):
 
     if precipitation.has_succeeded() and precipitation.is_raining:
         sky_state_icon = 'cloud-rain.svg'  # heavy?
-    elif daylight.time_of_day == TimeOfDay.NIGHT:
-        sky_state_icon = 'moon.svg'
-    elif daylight.original_reading.is_sunlight:
-        sky_state_icon = 'sun.svg'
-    elif daylight.time_of_day == TimeOfDay.MORNING:
-        sky_state_icon = 'sunrise.svg'
-    elif daylight.time_of_day == TimeOfDay.EVENING:
-        sky_state_icon = 'sunset.svg'
+    elif daylight.has_succeeded():
+        if daylight.time_of_day == TimeOfDay.NIGHT:
+            sky_state_icon = 'moon.svg'
+        elif daylight.original_reading.is_sunlight:
+            sky_state_icon = 'sun.svg'
+        elif daylight.time_of_day == TimeOfDay.MORNING:
+            sky_state_icon = 'sunrise.svg'
+        elif daylight.time_of_day == TimeOfDay.EVENING:
+            sky_state_icon = 'sunset.svg'
+        else:
+            sky_state_icon = 'clouds.svg'  # cloud-sun?
     else:
-        sky_state_icon = 'clouds.svg'  # cloud-sun?
+        sky_state_icon = 'question.svg'
 
     soil_hums = information.get_soil_moisture()
-    tenicons_shum = [_tendency_icons[soil_hum.tendency if soil_hum else Tendency.STEADY] for soil_hum in soil_hums]
-    strs_shum = [f'{soil_hum.current_value:.1f}' for soil_hum in soil_hums]
+    if type(soil_hums) == list:
+        tenicons_shum = [_tendency_icons[soil_hum.tendency] for soil_hum in soil_hums]
+        strs_shum = [f'{soil_hum.current_value:.1f}' for soil_hum in soil_hums]
+    else:
+        tenicons_shum = [UNKNOWN_ICON for _i in range(3)]
+        strs_shum = [UNKNOWN for _i in range(3)]
 
     tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant.has_succeeded() else UNKNOWN
     sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant.has_succeeded() else UNKNOWN
@@ -116,18 +125,18 @@ def index(request):
     _wind_direction_icons = {
         WindDirection.S: 'arrow-up-circle.svg',
         WindDirection.SE: 'arrow-up-right-circle.svg',
-        WindDirection.W: 'arrow-right-circle.svg',
+        WindDirection.W: 'arrow-left-circle.svg',
         WindDirection.NE: 'arrow-down-right-circle.svg',
         WindDirection.N: 'arrow-down-circle.svg',
         WindDirection.NW: 'arrow-down-left-circle.svg',
-        WindDirection.E: 'arrow-left-circle.svg',
+        WindDirection.E: 'arrow-right-circle.svg',
         WindDirection.SW: 'arrow-up-left-circle.svg',
-        WindDirection.UNKNOWN: 'circle.svg'
+        WindDirection.UNKNOWN: 'question-circle.svg'
     }
     # take direction and peak from long-term observations, current speed from short-term
     wind_dir = wind.long_term_observation.direction if wind.has_succeeded() else WindDirection.UNKNOWN
     wind_dir_icon = _wind_direction_icons[wind_dir]
-    # wind_dir_var = f'{int(wind.long_term_observation.direction_var)}%' if wind.has_succeeded() else UNKNOWN
+    wind_dir_var = f'{int(wind.long_term_observation.direction_var)}%' if wind.has_succeeded() else ''
     wind_peak = f'{int(wind.long_term_observation.wind_peak)} km/h' if wind.has_succeeded() else UNKNOWN
     wind_speed = f'{int(wind.short_term_observation.wind_speed)} km/h' if wind.has_succeeded() else UNKNOWN
     # wind_speed_var = f'{int(wind.short_term_observation.wind_variance)}%' if wind.has_succeeded() else UNKNOWN
@@ -182,11 +191,13 @@ def index(request):
         'sol_prod_h_max_perc': sol_prod_h_max_perc,
         'wind_dir': wind_dir.name if wind_dir != WindDirection.UNKNOWN else UNKNOWN,
         'wind_dir_icon': wind_dir_icon,
+        'wind_dir_var': wind_dir_var,
         'wind_speed': wind_speed,
         'wind_peak': wind_peak,
         'rain_mm': rain_mm,
         'rain_obs_h': rain_obs_h,
-        'date': _current_date
+        'date': _current_date,
+        'date_short': _short_date
     }
 
     return HttpResponse(template.render(context, request))
@@ -199,6 +210,7 @@ def external_temperature(request):
     graph = TemperatureGraph()
 
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
+    _short_date = datetime.today().strftime(REQUEST_DATE_FORMAT)
 
     temp_external = information.get_temp_external()
     temp_chimney = information.get_temp_chimney()
@@ -233,7 +245,8 @@ def external_temperature(request):
         'temp_grass': str_temp_grass,
         'tm_temp_grass': tm_temp_grass,
         'temp_external_graph': temp_external_graph_svg,
-        'date': _current_date
+        'date': _current_date,
+        'date_short': _short_date
     }
 
     return HttpResponse(template.render(context, request))
@@ -246,6 +259,7 @@ def internal_temperature(request):
     graph = TemperatureGraph()
 
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
+    _short_date = datetime.today().strftime(REQUEST_DATE_FORMAT)
 
     temp_office = information.get_temp_office()
     temp_attic = information.get_temp_attic()
@@ -274,88 +288,66 @@ def internal_temperature(request):
         'temp_garage': str_temp_garage,
         'tm_temp_garage': tm_temp_garage,
         'temp_office_graph': temp_office_graph_svg,
-        'date': _current_date
+        'date': _current_date,
+        'date_short': _short_date
     }
 
     return HttpResponse(template.render(context, request))
 
 
-# def any_temperature(request):
-#     sensor_loc = request.GET.get('sensor')
-#     sensor_name = request.GET.get('name')
-#     req_date = request.GET.get('date')
-#
-#     if not sensor_loc:
-#         return HttpResponseBadRequest()
-#
-#     if not sensor_name:
-#         sensor_name = UNKNOWN
-#
-#     _date = datetime.today()
-#     if req_date:
-#         _date = datetime.strptime(req_date, REQUEST_DATE_FORMAT)
-#
-#     _is_today = (_date - datetime.today()).days < 1
-#
-#     _date_minus = _date - timedelta(days=1)
-#     _date_plus = _date + timedelta(days=1)
-#
-#     _str_date = _date.strftime(REQUEST_DATE_FORMAT)
-#     _str_date_minus = _date_minus.strftime(REQUEST_DATE_FORMAT)
-#     _str_date_plus = _date_plus.strftime(REQUEST_DATE_FORMAT)
-#
-#     template = loader.get_template('temperature.html')
-#
-#     information = TemperatureInfo()
-#     graph = TemperatureGraph()
-#
-#     context = {
-#         'sensor_name': sensor_name,
-#         'temp_current': information.get_,
-#         'tm_temp_current': tm_temp_current,
-#         'temp_min': temp_min,
-#         'tm_temp_min': tm_temp_min,
-#         'temp_max': temp_max,
-#         'tm_temp_max': tm_temp_max,
-#         'temp_graph': graph.get_temp_daily_graph(sensor_location=sensor_loc, graph_title=f'Temperatura @ {sensor_name}', the_date=_date)
-#     }
-#
-#
-#
-#
-#     _temp = information.get_temp(sensor_loc)
-#     temp_chiminey = information.get_temp_chiminey()
-#     temp_roof = information.get_temp_roof()
-#     temp_garden = information.get_temp_garden()
-#     temp_grass = information.get_temp_grass()
-#
-#     str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external else UNKNOWN
-#     tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external else ''
-#     str_temp_chiminey = f'{temp_chiminey.temperature:.1f} {CELSIUS}' if temp_chiminey else UNKNOWN
-#     tm_temp_chiminey = temp_chiminey.timestamp.strftime('%H:%M') if temp_chiminey else ''
-#     str_temp_roof = f'{temp_roof.temperature:.1f} {CELSIUS}' if temp_roof else UNKNOWN
-#     tm_temp_roof = temp_roof.timestamp.strftime('%H:%M') if temp_roof else ''
-#     str_temp_garden = f'{temp_garden.temperature:.1f} {CELSIUS}' if temp_garden else UNKNOWN
-#     tm_temp_garden = temp_garden.timestamp.strftime('%H:%M') if temp_garden else ''
-#     str_temp_grass = f'{temp_grass.temperature:.1f} {CELSIUS}' if temp_grass else UNKNOWN
-#     tm_temp_grass = temp_grass.timestamp.strftime('%H:%M') if temp_grass else ''
-#
-#     temp_external_graph_svg = mark_safe(graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_EXTERNAL,
-#                                                                    graph_title='Temperatura zewnętrzna - czujnik pieca'))
-#
-#     context = {
-#         'temp_external': str_temp_external,
-#         'tm_temp_external': tm_temp_external,
-#         'temp_chiminey': str_temp_chiminey,
-#         'tm_temp_chiminey': tm_temp_chiminey,
-#         'temp_roof': str_temp_roof,
-#         'tm_temp_roof': tm_temp_roof,
-#         'temp_garden': str_temp_garden,
-#         'tm_temp_garden': tm_temp_garden,
-#         'temp_grass': str_temp_grass,
-#         'tm_temp_grass': tm_temp_grass,
-#         'temp_external_graph': temp_external_graph_svg,
-#         'date': _current_date
-#     }
-#
-#     return HttpResponse(template.render(context, request))
+def any_temperature(request):
+    sensor_loc = request.GET.get('sensor')
+    sensor_name = request.GET.get('name')
+    req_date = request.GET.get('date')
+
+    if not sensor_loc:
+        return HttpResponseBadRequest()
+
+    if not sensor_name:
+        sensor_name = UNKNOWN
+
+    _date = datetime.today()
+    if req_date:
+        _date = datetime.strptime(req_date, REQUEST_DATE_FORMAT)
+
+    _is_today = (datetime.today() - _date).days < 1
+
+    _date_minus = _date - timedelta(days=1)
+    _date_plus = _date + timedelta(days=1)
+
+    _str_date = _date.strftime(REQUEST_DATE_FORMAT)
+    _str_date_minus = _date_minus.strftime(REQUEST_DATE_FORMAT)
+    _str_date_plus = _date_plus.strftime(REQUEST_DATE_FORMAT)
+
+    template = loader.get_template('temperature.html')
+
+    stats = TemperatureDailyStatistics().get_daily_statistics(sensor_location=sensor_loc, the_date=_date)
+    graph = TemperatureGraph()
+
+    context = {
+        'sensor_name': sensor_name,
+        'sensor_loc': sensor_loc,
+        'is_today': _is_today,
+        'the_date': _date.strftime('%Y-%m-%d'),
+        'date_minus': _date_minus.strftime('%Y-%m-%d'),
+        'date_plus': _date_plus.strftime('%Y-%m-%d'),
+        'temp_graph': graph.get_temp_daily_graph(
+            sensor_location=sensor_loc, graph_title=None, the_date=_date),
+        'daily_min': f'{stats.statistics_24h.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'daily_min_tm': f'{stats.statistics_24h.min_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
+        'daily_avg': f'{stats.statistics_24h.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'daily_max': f'{stats.statistics_24h.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'daily_max_tm': f'{stats.statistics_24h.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
+        'day_min': f'{stats.statistics_day.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'day_min_tm': f'{stats.statistics_day.min_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
+        'day_avg': f'{stats.statistics_day.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'day_max': f'{stats.statistics_day.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'day_max_tm': f'{stats.statistics_day.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
+        'night_min': f'{stats.statistics_night.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'night_min_tm': f'{stats.statistics_night.min_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
+        'night_avg': f'{stats.statistics_night.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'night_max': f'{stats.statistics_night.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
+        'night_max_tm': f'{stats.statistics_night.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN
+    }
+
+    return HttpResponse(template.render(context, request))

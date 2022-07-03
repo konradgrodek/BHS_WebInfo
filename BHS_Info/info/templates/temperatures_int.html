@@ -31,34 +31,34 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_office}}</b><br>
-            Biuro<br>
+            <a href="/temp/any?sensor=Office&name=biuro&date={{date_short}}">Biuro</a><br>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_office}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_attic}}</b><br>
-            Strych
+            <a href="/temp/any?sensor=Attic&name=strych&date={{date_short}}">Strych</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_attic}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_bunker}}</b><br>
-            Bunkier
+            <a href="/temp/any?sensor=Bunker&name=bunkier&date={{date_short}}">Bunkier</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_bunker}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_garage}}</b><br>
-            Garaż
+            <a href="/temp/any?sensor=Garage&name=garaż&date={{date_short}}">Garaż</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_garage}}</span></p>
           </div>
         </div>
       </div>
     </div>
-
+    <br>
     <div class="container px-4" align="center">
       <div class="row gx-5">
         {{temp_office_graph}}

@@ -6,7 +6,6 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="30">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
@@ -20,33 +19,71 @@
     <br>
 
     <div class="container" align="center">
-      {{date}}
+      {{the_date}}
     </div>
 
-    <h1 align="center">{{sensor_name}}</h1>
+    <div class="container" align="center">
+      <a href="/"><img src="{% static 'info/house-fill.svg' %}"></a>
+    </div>
+
+    <h1 align="center">Temperatura: {{sensor_name}}</h1>
+    <br>
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        {{temp_graph}}
+      </div>
+    </div>
+
+    <br>
+
+    <!-- Navigation pane -->
+    <div class="container px-4" align="center">
+
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <a href="/temp/any?sensor={{sensor_loc}}&name={{sensor_name}}&date={{date_minus}}" role="button" class="btn btn-outline-primary"><img src="{% static 'info/arrow-left.svg' %}"> {{date_minus}}</a>
+            <a href="#" role="button" class="btn btn-outline-primary">{{the_date}}</a>
+            {% if is_today is not True %}
+            <a href="/temp/any?sensor={{sensor_loc}}&name={{sensor_name}}&date={{date_plus}}" role="button" class="btn btn-outline-primary">{{date_plus}} <img src="{% static 'info/arrow-right.svg' %}"> </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <br>
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
+          24h
+        </div>
+      </div>
+
+      <br>
+
+      <div class="row gx-5">
+        <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_current}}</b><br>
-            Obecnie<br>
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_current}}</span></p>
+            Minimum<br>
+            <b>{{daily_min}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{daily_min_tm}}</span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_min}}</b><br>
-            Minimum
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_min}}</span></p>
+            Średnia<br>
+            <b>{{daily_avg}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em"> </span></p>
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <b>{{temp_max}}</b><br>
-            Maksimum
-            <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_max}}</span></p>
+            Maksimum<br>
+            <b>{{daily_max}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{daily_max_tm}}</span></p>
           </div>
         </div>
       </div>
@@ -54,7 +91,69 @@
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
-        {{temp_graph}}
+        <div class="col-sm">
+          <img src="{% static 'info/sun.svg' %}"> Podczas dnia <img src="{% static 'info/sun.svg' %}">
+        </div>
+      </div>
+
+      <br>
+
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Minimum<br>
+            <b>{{day_min}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{day_min_tm}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Średnia<br>
+            <b>{{day_avg}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em"> </span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Maksimum<br>
+            <b>{{day_max}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{day_max_tm}}</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container px-4" align="center">
+      <div class="row gx-5">
+        <div class="col-sm">
+          <img src="{% static 'info/moon.svg' %}"> Podczas nocy <img src="{% static 'info/moon.svg' %}">
+        </div>
+      </div>
+
+      <br>
+
+      <div class="row gx-5">
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Minimum<br>
+            <b>{{night_min}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{night_min_tm}}</span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Średnia<br>
+            <b>{{night_avg}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em"> </span></p>
+          </div>
+        </div>
+        <div class="col-sm">
+          <div class="p-3 border bg-light">
+            Maksimum<br>
+            <b>{{night_max}}</b><br>
+            <p class="text-muted"><span style="font-size:0.8em">{{night_max_tm}}</span></p>
+          </div>
+        </div>
       </div>
     </div>
 

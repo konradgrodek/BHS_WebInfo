@@ -49,7 +49,7 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <b>{{temp_bunker}}</b><br>
-            W bunkrze
+            <a href="/temp/any?sensor=Bunker&name=bunkier&date={{date_short}}">W bunkrze</a>
             <p class="text-muted"><span style="font-size:0.8em">{{tm_temp_bunker}}</span></p>
           </div>
         </div>
@@ -62,7 +62,7 @@
       <div class="row gx-5">
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            {{wind_dir}} <img src="{% static 'info/' %}{{wind_dir_icon}}" height="30"><br>
+            {{wind_dir}} <img src="{% static 'info/' %}{{wind_dir_icon}}" height="30"> <span style="font-size:0.8em">{{wind_dir_var}}</span><br>
             Wiatr: {{wind_speed}} (poryw: {{wind_peak}})
           </div>
         </div>

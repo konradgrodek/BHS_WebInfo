@@ -42,6 +42,7 @@ class RestConfig(ConfigParser):
     OPTION_CURRENT_WIND = 'current-wind'
     OPTION_GRAPH_TEMPERATURE = 'graph-temperature'
     OPTION_PROGRESS_BAR = 'progress-bar'
+    OPTION_HISTORY_TEMP_DAILY = 'history-temperature-daily'
 
     def __init__(self):
         ConfigParser.__init__(self)
@@ -97,13 +98,17 @@ class RestConfig(ConfigParser):
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_WIND))
 
-    def get_graph_temperature(self) -> RestEndPoint:
+    def get_graph_temperature_endpoint(self) -> RestEndPoint:
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_TEMPERATURE))
 
-    def get_progress_bar(self) -> RestEndPoint:
+    def get_progress_bar_endpoint(self) -> RestEndPoint:
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_PROGRESS_BAR))
 
+    def get_history_temperature_daily_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_HISTORY_TEMP_DAILY))
