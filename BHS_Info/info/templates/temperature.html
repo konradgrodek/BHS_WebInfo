@@ -44,8 +44,8 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <a href="/temp/any?sensor={{sensor_loc}}&name={{sensor_name}}&date={{date_minus}}" role="button" class="btn btn-outline-primary"><img src="{% static 'info/arrow-left.svg' %}"> {{date_minus}}</a>
-            <a href="#" role="button" class="btn btn-outline-primary">{{the_date}}</a>
             {% if is_today is not True %}
+            &nbsp;&nbsp;
             <a href="/temp/any?sensor={{sensor_loc}}&name={{sensor_name}}&date={{date_plus}}" role="button" class="btn btn-outline-primary">{{date_plus}} <img src="{% static 'info/arrow-right.svg' %}"> </a>
             {% endif %}
           </div>
@@ -89,6 +89,8 @@
       </div>
     </div>
 
+    <br>
+
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
@@ -122,6 +124,8 @@
         </div>
       </div>
     </div>
+
+    <br>
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
