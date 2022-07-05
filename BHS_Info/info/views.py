@@ -218,16 +218,16 @@ def external_temperature(request):
     temp_garden = information.get_temp_garden()
     temp_grass = information.get_temp_grass()
 
-    str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external else UNKNOWN
-    tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external else ''
-    str_temp_chimney = f'{temp_chimney.temperature:.1f} {CELSIUS}' if temp_chimney else UNKNOWN
-    tm_temp_chimney = temp_chimney.timestamp.strftime('%H:%M') if temp_chimney else ''
-    str_temp_roof = f'{temp_roof.temperature:.1f} {CELSIUS}' if temp_roof else UNKNOWN
-    tm_temp_roof = temp_roof.timestamp.strftime('%H:%M') if temp_roof else ''
-    str_temp_garden = f'{temp_garden.temperature:.1f} {CELSIUS}' if temp_garden else UNKNOWN
-    tm_temp_garden = temp_garden.timestamp.strftime('%H:%M') if temp_garden else ''
-    str_temp_grass = f'{temp_grass.temperature:.1f} {CELSIUS}' if temp_grass else UNKNOWN
-    tm_temp_grass = temp_grass.timestamp.strftime('%H:%M') if temp_grass else ''
+    str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external.has_succeeded() else UNKNOWN
+    tm_temp_external = temp_external.timestamp.strftime('%H:%M') if temp_external.has_succeeded() else ''
+    str_temp_chimney = f'{temp_chimney.temperature:.1f} {CELSIUS}' if temp_chimney.has_succeeded() else UNKNOWN
+    tm_temp_chimney = temp_chimney.timestamp.strftime('%H:%M') if temp_chimney.has_succeeded() else ''
+    str_temp_roof = f'{temp_roof.temperature:.1f} {CELSIUS}' if temp_roof.has_succeeded() else UNKNOWN
+    tm_temp_roof = temp_roof.timestamp.strftime('%H:%M') if temp_roof.has_succeeded() else ''
+    str_temp_garden = f'{temp_garden.temperature:.1f} {CELSIUS}' if temp_garden.has_succeeded() else UNKNOWN
+    tm_temp_garden = temp_garden.timestamp.strftime('%H:%M') if temp_garden.has_succeeded() else ''
+    str_temp_grass = f'{temp_grass.temperature:.1f} {CELSIUS}' if temp_grass.has_succeeded() else UNKNOWN
+    tm_temp_grass = temp_grass.timestamp.strftime('%H:%M') if temp_grass.has_succeeded() else ''
 
     temp_external_graph_svg = mark_safe(
         graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_EXTERNAL,
@@ -266,14 +266,14 @@ def internal_temperature(request):
     temp_bunker = information.get_temp_bunker()
     temp_garage = information.get_temp_garage()
 
-    str_temp_office = f'{temp_office.temperature:.1f} {CELSIUS}' if temp_office else UNKNOWN
-    tm_temp_office = temp_office.timestamp.strftime('%H:%M') if temp_office else ''
-    str_temp_attic = f'{temp_attic.temperature:.1f} {CELSIUS}' if temp_attic else UNKNOWN
-    tm_temp_attic = temp_attic.timestamp.strftime('%H:%M') if temp_attic else ''
-    str_temp_bunker = f'{temp_bunker.temperature:.1f} {CELSIUS}' if temp_bunker else UNKNOWN
-    tm_temp_bunker = temp_bunker.timestamp.strftime('%H:%M') if temp_bunker else ''
-    str_temp_garage = f'{temp_garage.temperature:.1f} {CELSIUS}' if temp_garage else UNKNOWN
-    tm_temp_garage = temp_garage.timestamp.strftime('%H:%M') if temp_garage else ''
+    str_temp_office = f'{temp_office.temperature:.1f} {CELSIUS}' if temp_office.has_succeeded() else UNKNOWN
+    tm_temp_office = temp_office.timestamp.strftime('%H:%M') if temp_office.has_succeeded() else ''
+    str_temp_attic = f'{temp_attic.temperature:.1f} {CELSIUS}' if temp_attic.has_succeeded() else UNKNOWN
+    tm_temp_attic = temp_attic.timestamp.strftime('%H:%M') if temp_attic.has_succeeded() else ''
+    str_temp_bunker = f'{temp_bunker.temperature:.1f} {CELSIUS}' if temp_bunker.has_succeeded() else UNKNOWN
+    tm_temp_bunker = temp_bunker.timestamp.strftime('%H:%M') if temp_bunker.has_succeeded() else ''
+    str_temp_garage = f'{temp_garage.temperature:.1f} {CELSIUS}' if temp_garage.has_succeeded() else UNKNOWN
+    tm_temp_garage = temp_garage.timestamp.strftime('%H:%M') if temp_garage.has_succeeded() else ''
 
     temp_office_graph_svg = mark_safe(graph.get_temp_daily_graph(sensor_location=SENSOR_LOC_OFFICE,
                                                                  graph_title='Temperatura w biurze'))
@@ -339,15 +339,15 @@ def any_temperature(request):
         'daily_max': f'{stats.statistics_24h.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
         'daily_max_tm': f'{stats.statistics_24h.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
         'day_min': f'{stats.statistics_day.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'day_min_tm': f'{stats.statistics_day.min_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
-        'day_avg': f'{stats.statistics_day.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'day_max': f'{stats.statistics_day.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'day_max_tm': f'{stats.statistics_day.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
-        'night_min': f'{stats.statistics_night.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'night_min_tm': f'{stats.statistics_night.min_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN,
-        'night_avg': f'{stats.statistics_night.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'night_max': f'{stats.statistics_night.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() else UNKNOWN,
-        'night_max_tm': f'{stats.statistics_night.max_at.strftime("%H:%M")}' if stats.has_succeeded() else UNKNOWN
+        'day_min_tm': f'{stats.statistics_day.min_at.strftime("%H:%M")}' if stats.has_succeeded() and stats.statistics_day.has_succeeded() else UNKNOWN,
+        'day_avg': f'{stats.statistics_day.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_day.has_succeeded() else UNKNOWN,
+        'day_max': f'{stats.statistics_day.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_day.has_succeeded() else UNKNOWN,
+        'day_max_tm': f'{stats.statistics_day.max_at.strftime("%H:%M")}' if stats.has_succeeded() and stats.statistics_day.has_succeeded() else UNKNOWN,
+        'night_min': f'{stats.statistics_night.temp_min:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
+        'night_min_tm': f'{stats.statistics_night.min_at.strftime("%H:%M")}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
+        'night_avg': f'{stats.statistics_night.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
+        'night_max': f'{stats.statistics_night.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
+        'night_max_tm': f'{stats.statistics_night.max_at.strftime("%H:%M")}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN
     }
 
     return HttpResponse(template.render(context, request))
