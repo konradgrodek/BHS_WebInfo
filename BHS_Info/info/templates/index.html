@@ -150,20 +150,16 @@
       <div class="row gx-5">
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <div class="progress" align="center">
-              <div class="progress-bar {{aq_pm_10_color}}" role="progressbar" style="width: {{aq_pm_10_level}}%" aria-valuenow="{{aq_pm_10_level}}" aria-valuemin="0" aria-valuemax="100">
-                PM 10: {{aq_pm_10_label}}%
-              </div>
-            </div>
+            <b>PM 10</b><br>
+            {{aq_pm_10_norm_perc}}<br>
+            {{aq_pm_10_level}}
           </div>
         </div>
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <div class="progress" align="center">
-              <div class="progress-bar {{aq_pm_2_5_color}}" role="progressbar" style="width: {{aq_pm_2_5_level}}%" aria-valuenow="{{aq_pm_2_5_level}}" aria-valuemin="0" aria-valuemax="100">
-                PM 2.5: {{aq_pm_2_5_label}}%
-              </div>
-            </div>
+            <b>PM 2.5</b><br>
+            {{aq_pm_2_5_norm_perc}}<br>
+            {{aq_pm_2_5_level}}
           </div>
         </div>
       </div>
@@ -181,11 +177,7 @@
       <div class="row gx-5">
         <div class="col-sm">
           <div class="p-3 border bg-light">
-            <div class="progress" align="center">
-              <div class="progress-bar {{cesspit_state}}" role="progressbar" style="width: {{cesspit_level}}%" aria-valuenow="{{cesspit_level}}" aria-valuemin="0" aria-valuemax="100">
-                {{cesspit_level_label}}%
-              </div>
-            </div>
+            {{cesspit_progress}}
           </div>
         </div>
 
@@ -197,8 +189,6 @@
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
-        </div>
-        <div class="col-sm">
           <div class="p-3 border bg-light">
             Świerk: <b>{{soil_hum_0}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_0}}">
             Bunkier: <b>{{soil_hum_1}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_1}}"><br>
@@ -207,6 +197,11 @@
           </div>
         </div>
         <div class="col-sm">
+          <div class="p-3 border bg-light">
+            <div>Poziom magazynu wody</div>
+            {{water_tank_progress}}
+            <p class="text-muted"><span style="font-size:0.8em">{{tm_water_tank_level}}</span></p>
+          </div>
         </div>
       </div>
     </div>

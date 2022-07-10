@@ -32,7 +32,9 @@ def index(request):
     solar_plant = information.get_solar_plant()
     precipitation = information.get_precipitation()
     wind = information.get_wind()
+    water_tank = information.get_water_tank()
     progress_bars = ProgressBar()
+    progress_bar_size = (4, 0.32)
 
     _current_date = datetime.today().strftime('%Y-%m-%d %H:%M')
     _short_date = datetime.today().strftime(REQUEST_DATE_FORMAT)
@@ -41,12 +43,6 @@ def index(request):
         Tendency.RISING: 'arrow-up-right.svg',
         Tendency.STEADY: 'arrow-right.svg',
         Tendency.FALLING: 'arrow-down-right.svg'
-    }
-
-    _cesspit_states = {
-        CesspitState.OK: 'bg-success',
-        CesspitState.WARNING: 'bg-warning',
-        CesspitState.CRITICAL: 'bg-danger'
     }
 
     str_temp_external = f'{temp_external.temperature:.1f} {CELSIUS}' if temp_external.has_succeeded() else UNKNOWN
@@ -62,25 +58,20 @@ def index(request):
     str_pressure = f'{pressure.current_value:.0f}' if pressure.has_succeeded() else UNKNOWN
     tenicon_pressure = _tendency_icons[pressure.tendency if pressure.has_succeeded() else Tendency.STEADY]
 
-    cesspit_state = _cesspit_states[cesspit.state] if cesspit.has_succeeded() else ''
-    cesspit_level_label = f'{cesspit.original_reading.fill:.2f}' if cesspit.has_succeeded() else UNKNOWN
-    cesspit_level = str(int(cesspit.original_reading.fill)) if cesspit.has_succeeded() else '0'
+    cesspit_progress = progress_bars.get_progress_bar(
+        cesspit.original_reading.fill if cesspit.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
     cesspit_reading_state = '' if not cesspit.has_succeeded() else 'KO' if cesspit.failure_detected else 'OK'
     tm_cesspit = cesspit.original_reading.timestamp.strftime('%H:%M') if cesspit.has_succeeded() else ''
 
-    aq_pm_10_label = air_quality.pm_10 if air_quality.has_succeeded() else UNKNOWN
-    aq_pm_10_level = 0 if not air_quality.has_succeeded() else air_quality.pm_10 if air_quality.pm_10 <= 100 else 100
-    aq_pm_10_color = '' if not air_quality.has_succeeded() \
-        else 'bg-success' if air_quality.pm_10 < 100 \
-        else 'bg-warning' if air_quality.pm_10 < 200 \
-        else 'bg-danger'
+    aq_pm_10_norm_perc = progress_bars.get_progress_bar(
+        percentage=air_quality.pm_10 if air_quality.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
+    aq_pm_10_level = UNKNOWN if not air_quality.has_succeeded() \
+        else (str(air_quality.original_reading.pm_10)+' \u03bcg/m\u00b3')
 
-    aq_pm_2_5_label = air_quality.pm_2_5 if air_quality.has_succeeded() else UNKNOWN
-    aq_pm_2_5_level = 0 if not air_quality.has_succeeded() else air_quality.pm_2_5 if air_quality.pm_2_5 <= 100 else 100
-    aq_pm_2_5_color = '' if not air_quality.has_succeeded() \
-        else 'bg-success' if air_quality.pm_2_5 < 100 \
-        else 'bg-warning' if air_quality.pm_2_5 < 200 \
-        else 'bg-danger'
+    aq_pm_2_5_norm_perc = progress_bars.get_progress_bar(
+        percentage=air_quality.pm_2_5 if air_quality.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
+    aq_pm_2_5_level = UNKNOWN if not air_quality.has_succeeded() \
+        else (str(air_quality.original_reading.pm_2_5)+' \u03bcg/m\u00b3')
 
     tm_aq = air_quality.original_reading.timestamp.strftime('%H:%M') if air_quality.has_succeeded() else ''
 
@@ -112,7 +103,8 @@ def index(request):
     sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant.has_succeeded() else UNKNOWN
     sol_prod_now_perc = str(solar_plant.current_production_perc) if solar_plant.has_succeeded() else '0'
     sol_prod_now_progress_bar = progress_bars.get_progress_bar(
-        percentage=solar_plant.current_production_perc, size=(4, 0.32), show_border=True)
+        percentage=solar_plant.current_production_perc if solar_plant.has_succeeded() else 0,
+        size=progress_bar_size, show_border=False, colormap='Greens')
     sol_prod_today = f'{solar_plant.reading.daily_production_kwh:.1f}' if solar_plant.has_succeeded() else UNKNOWN
     sol_prod_h_min_w = str(solar_plant.reading.hourly_min_w) if solar_plant.has_succeeded() else UNKNOWN
     sol_prod_h_min_perc = str(solar_plant.hourly_min_perc) if solar_plant.has_succeeded() else '0'
@@ -145,6 +137,11 @@ def index(request):
     rain_mm = f'{precipitation.precipitation_mm:.1f} mm' if precipitation.has_succeeded() else UNKNOWN
     rain_obs_h = f'{precipitation.observation_duration_h} h' if precipitation.has_succeeded() else UNKNOWN
 
+    # water tank
+    water_level = progress_bars.get_progress_bar(
+        percentage=int(water_tank.fill), size=progress_bar_size, show_border=False, colormap='Greens')
+    tm_water_level = water_tank.timestamp.strftime('%H:%M') if water_tank.has_succeeded() else UNKNOWN
+
     context = {
         'temp_external': str_temp_external,
         'temp_internal': str_temp_internal,
@@ -156,17 +153,13 @@ def index(request):
         'hum_in_tendency_icon': tenicon_hum_in,
         'pressure': str_pressure,
         'pressure_tendency_icon': tenicon_pressure,
-        'cesspit_state': cesspit_state,
-        'cesspit_level_label': cesspit_level_label,
-        'cesspit_level': cesspit_level,
+        'cesspit_progress': cesspit_progress,
         'cesspit_reading_state': cesspit_reading_state,
         'tm_cesspit': tm_cesspit,
-        'aq_pm_10_label': aq_pm_10_label,
+        'aq_pm_10_norm_perc': aq_pm_10_norm_perc,
         'aq_pm_10_level': aq_pm_10_level,
-        'aq_pm_10_color': aq_pm_10_color,
-        'aq_pm_2_5_label': aq_pm_2_5_label,
+        'aq_pm_2_5_norm_perc': aq_pm_2_5_norm_perc,
         'aq_pm_2_5_level': aq_pm_2_5_level,
-        'aq_pm_2_5_color': aq_pm_2_5_color,
         'tm_aq': tm_aq,
         'sunrise': daylight.sunrise,
         'sunset': daylight.sunset,
@@ -197,7 +190,9 @@ def index(request):
         'rain_mm': rain_mm,
         'rain_obs_h': rain_obs_h,
         'date': _current_date,
-        'date_short': _short_date
+        'date_short': _short_date,
+        'water_tank_progress': water_level,
+        'tm_water_tank_level': tm_water_level
     }
 
     return HttpResponse(template.render(context, request))

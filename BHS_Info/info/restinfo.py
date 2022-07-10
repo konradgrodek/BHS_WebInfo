@@ -81,11 +81,13 @@ class ProgressBar(SVGGraph):
     def __init__(self):
         SVGGraph.__init__(self)
 
-    def get_progress_bar(self, percentage: int, size=None, show_border: bool = False) -> str:
+    def get_progress_bar(self, percentage: int, size=None, show_border: bool = False,
+                         color: str = None, colormap: str = None) -> str:
         return self._svg(rest_configuration.get_progress_bar_endpoint().get_url(),
                          ProgressBarRESTInterface(progress=percentage,
                                                   size=size,
-                                                  show_border=show_border).params_for_get())
+                                                  show_border=show_border,
+                                                  color=color, colormap=colormap).params_for_get())
 
 
 class TemperatureGraph(SVGGraph):
@@ -207,6 +209,9 @@ class MainPageInfo(TemperatureInfo):
 
     def get_wind(self) -> WindObservationsReadingJson:
         return self._safe_json_get(rest_configuration.get_current_wind_endpoint())
+
+    def get_water_tank(self) -> WaterLevelReadingJson:
+        return self._safe_json_get(rest_configuration.get_current_water_tank_endpoint())
 
 
 class TemperatureDailyStatistics(RestBackend):
