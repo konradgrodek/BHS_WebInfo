@@ -139,7 +139,8 @@ def index(request):
 
     # water tank
     water_level = progress_bars.get_progress_bar(
-        percentage=int(water_tank.fill), size=progress_bar_size, show_border=False, colormap='Greens')
+        percentage=int(water_tank.fill if water_tank.has_succeeded() else 0),
+        size=progress_bar_size, show_border=False, colormap='Greens')
     tm_water_level = water_tank.timestamp.strftime('%H:%M') if water_tank.has_succeeded() else UNKNOWN
 
     context = {
@@ -161,10 +162,10 @@ def index(request):
         'aq_pm_2_5_norm_perc': aq_pm_2_5_norm_perc,
         'aq_pm_2_5_level': aq_pm_2_5_level,
         'tm_aq': tm_aq,
-        'sunrise': daylight.sunrise,
-        'sunset': daylight.sunset,
+        'sunrise': daylight.sunrise if daylight.has_succeeded() else UNKNOWN,
+        'sunset': daylight.sunset if daylight.has_succeeded() else UNKNOWN,
         'sky_state_icon': sky_state_icon,
-        'daylight_perc': daylight.original_reading.luminescence_perc,
+        'daylight_perc': daylight.original_reading.luminescence_perc if daylight.has_succeeded() else UNKNOWN,
         'soil_hum_tendency_icon_0': tenicons_shum[0],
         'soil_hum_0': strs_shum[0],
         'soil_hum_tendency_icon_1': tenicons_shum[1],

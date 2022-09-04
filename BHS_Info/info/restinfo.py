@@ -100,7 +100,8 @@ class TemperatureGraph(SVGGraph):
                          TemperatureGraphRESTInterface(
                              sensor_location=sensor_location,
                              the_date=the_date,
-                             graph_title=graph_title).params_for_get())
+                             graph_title=graph_title,
+                             style=TemperatureGraphRESTInterface.STYLE_FILLBETWEEN).params_for_get())
 
 
 class TemperatureInfo(RestBackend):
