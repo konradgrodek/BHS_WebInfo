@@ -99,7 +99,7 @@ def index(request):
         tenicons_shum = [UNKNOWN_ICON for _i in range(3)]
         strs_shum = [UNKNOWN for _i in range(3)]
 
-    tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant.has_succeeded() else UNKNOWN
+    tm_sol = solar_plant.reading.last_production_at.strftime('%Y-%m-%d %H:%M') if solar_plant.has_succeeded() and solar_plant.reading.last_production_at else UNKNOWN
     sol_prod_now_w = str(solar_plant.reading.current_production_w) if solar_plant.has_succeeded() else UNKNOWN
     sol_prod_now_perc = str(solar_plant.current_production_perc) if solar_plant.has_succeeded() else '0'
     sol_prod_now_progress_bar = progress_bars.get_progress_bar(
