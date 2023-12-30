@@ -31,6 +31,10 @@ class RestConfig(ConfigParser):
     OPTION_PORT = 'port'
     OPTION_CURRENT_TEMP = 'current-temperature'
     OPTION_CURRENT_CESSPIT = 'current-cesspit-level'
+    OPTION_CURRENT_CESSPIT_PREDICTION = 'current-cesspit-prediction'
+    OPTION_GRAPH_CESSPIT_TODAY = 'graph-cesspit-today'
+    OPTION_GRAPH_CESSPIT_WEEK = 'graph-cesspit-last-week'
+    OPTION_GRAPH_CESSPIT_PREDICTION = 'graph-cesspit-prediction'
     OPTION_CURRENT_PRESSURE = 'current-pressure'
     OPTION_CURRENT_HUMIDITY_IN = 'current-humidity-in'
     OPTION_CURRENT_AIR_QUALITY = 'current-air-quality'
@@ -118,3 +122,23 @@ class RestConfig(ConfigParser):
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_HISTORY_TEMP_DAILY))
+
+    def get_current_cesspit_prediction_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_CURRENT_CESSPIT_PREDICTION))
+
+    def get_graph_cesspit_today(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_CESSPIT_TODAY))
+
+    def get_graph_cesspit_week(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_CESSPIT_WEEK))
+
+    def get_graph_cesspit_prediction(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_CESSPIT_PREDICTION))

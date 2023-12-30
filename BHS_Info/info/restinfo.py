@@ -104,6 +104,24 @@ class TemperatureGraph(SVGGraph):
                              style=TemperatureGraphRESTInterface.STYLE_FILLBETWEEN).params_for_get())
 
 
+class CesspitGraph(SVGGraph):
+
+    def __init__(self):
+        SVGGraph.__init__(self)
+
+    def get_today_usage_graph(self) -> str:
+        return self._svg(rest_configuration.get_graph_cesspit_today().get_url(), {})
+
+    def get_last_week_usage_graph(self) -> str:
+        return self._svg(
+            rest_configuration.get_graph_cesspit_week().get_url(),
+            CesspitHistoryRESTInterface(days_in_past=7).params_for_get()
+        )
+
+    def get_prediction_graph(self) -> str:
+        return self._svg(rest_configuration.get_graph_cesspit_prediction().get_url(), {})
+
+
 class TemperatureInfo(RestBackend):
 
     def __init__(self):
@@ -214,6 +232,9 @@ class MainPageInfo(TemperatureInfo):
     def get_water_tank(self) -> WaterLevelReadingJson:
         return self._safe_json_get(rest_configuration.get_current_water_tank_endpoint())
 
+    def get_cesspit_prediction(self) -> CesspitPredictionJson:
+        return self._safe_json_get(rest_configuration.get_current_cesspit_prediction_endpoint())
+
 
 class TemperatureDailyStatistics(RestBackend):
 
@@ -226,3 +247,13 @@ class TemperatureDailyStatistics(RestBackend):
             params=TemperatureStatisticsRESTInterface(
                 sensor_location=sensor_location,
                 the_date=the_date).params_for_get())
+
+
+class CesspitInfo(MainPageInfo):
+
+    def __init__(self):
+        """
+        Creates new object responsible for delivering information for page with cesspit state.
+        In order to not duplicate code, this derives from MainPageInfo
+        """
+        MainPageInfo.__init__(self)

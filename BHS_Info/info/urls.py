@@ -6,5 +6,6 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('temp/ext', views.external_temperature, name='temp_ext'),
     path('temp/int', views.internal_temperature, name='temp_int'),
-    path('temp/any', views.any_temperature, name='any_temp')
+    path('temp/any', views.any_temperature, name='any_temp'),
+    path('cesspit', views.cesspit, name='cesspit'),
 ]

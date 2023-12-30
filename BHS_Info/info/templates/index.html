@@ -139,7 +139,7 @@
 
     <br>
 
-
+    <!--
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
@@ -165,12 +165,12 @@
       </div>
     </div>
 
-    <br>
+    <br> -->
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
         <div class="col-sm">
-          Stan szamba<br>
+          <a href="/cesspit">Stan szamba</a><br>
           <span style="font-size:0.8em">{{tm_cesspit}} odczyt {{cesspit_reading_state}}</span>
         </div>
       </div>
@@ -178,6 +178,7 @@
         <div class="col-sm">
           <div class="p-3 border bg-light">
             {{cesspit_progress}}
+            <br><span style="font-size:0.8em">Wywóz do: {{cesspit_predicted_full_date}}</span>
           </div>
         </div>
 
@@ -188,14 +189,14 @@
 
     <div class="container px-4" align="center">
       <div class="row gx-5">
-        <div class="col-sm">
+        <!-- <div class="col-sm">
           <div class="p-3 border bg-light">
             Świerk: <b>{{soil_hum_0}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_0}}">
             Bunkier: <b>{{soil_hum_1}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_1}}"><br>
             Piwonie: <b>{{soil_hum_2}} %</b> <img src="{% static 'info/' %}{{soil_hum_tendency_icon_2}}"><br>
             Wilgotność gleby
           </div>
-        </div>
+        </div> -->
         <div class="col-sm">
           <div class="p-3 border bg-light">
             <div>Poziom magazynu wody</div>

@@ -25,6 +25,7 @@ def index(request):
     temp_external = information.get_temp_external_best_available()
     temp_bunker = information.get_temp_bunker()
     cesspit = information.get_cesspit_level()
+    cesspit_prediction = information.get_cesspit_prediction()
     humidity_in = information.get_humidity_in()
     air_quality = information.get_air_quality()
     pressure = information.get_pressure()
@@ -62,6 +63,7 @@ def index(request):
         cesspit.original_reading.fill if cesspit.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
     cesspit_reading_state = '' if not cesspit.has_succeeded() else 'KO' if cesspit.failure_detected else 'OK'
     tm_cesspit = cesspit.original_reading.timestamp.strftime('%H:%M') if cesspit.has_succeeded() else ''
+    cesspit_predicted_full_date = cesspit_prediction.predicted_date.strftime('%Y-%m-%d %H:%M') if cesspit_prediction.has_succeeded() else '?'
 
     aq_pm_10_norm_perc = progress_bars.get_progress_bar(
         percentage=air_quality.pm_10 if air_quality.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
@@ -156,6 +158,7 @@ def index(request):
         'pressure_tendency_icon': tenicon_pressure,
         'cesspit_progress': cesspit_progress,
         'cesspit_reading_state': cesspit_reading_state,
+        'cesspit_predicted_full_date': cesspit_predicted_full_date,
         'tm_cesspit': tm_cesspit,
         'aq_pm_10_norm_perc': aq_pm_10_norm_perc,
         'aq_pm_10_level': aq_pm_10_level,
@@ -344,6 +347,53 @@ def any_temperature(request):
         'night_avg': f'{stats.statistics_night.temp_avg:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
         'night_max': f'{stats.statistics_night.temp_max:.1f} {CELSIUS}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN,
         'night_max_tm': f'{stats.statistics_night.max_at.strftime("%H:%M")}' if stats.has_succeeded() and stats.statistics_night.has_succeeded() else UNKNOWN
+    }
+
+    return HttpResponse(template.render(context, request))
+
+
+def cesspit(request):
+    template = loader.get_template('cesspit.html')
+
+    information = CesspitInfo()
+    graph = CesspitGraph()
+    progress_bar = ProgressBar()
+
+    progress_bar_size = (4, 0.32)
+
+    _current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+    _short_date = datetime.today().strftime(REQUEST_DATE_FORMAT)
+
+    r_level = information.get_cesspit_level()
+    r_prediction = information.get_cesspit_prediction()
+
+    cesspit_progress = progress_bar.get_progress_bar(
+        r_level.original_reading.fill if r_level.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
+    cesspit_reading_state = '' if not r_level.has_succeeded() else 'KO' if r_level.failure_detected else 'OK'
+    tm_cesspit = r_level.original_reading.timestamp.strftime('%H:%M') if r_level.has_succeeded() else ''
+    cesspit_predicted_full_date = r_prediction.predicted_date.strftime('%Y-%m-%d %H:%M') \
+        if r_prediction.has_succeeded() else UNKNOWN
+    cesspit_predicted_in_days = str((r_prediction.predicted_date - datetime.now()).days) \
+        if r_prediction.has_succeeded() else UNKNOWN
+    cesspit_predicted_at = r_prediction.as_of_date.strftime('%H:%M') \
+        if r_prediction.has_succeeded() else UNKNOWN
+
+    graph_today_svg = mark_safe(graph.get_today_usage_graph())
+    graph_week_svg = mark_safe(graph.get_last_week_usage_graph())
+    graph_prediction_svg = mark_safe(graph.get_prediction_graph())
+
+    context = {
+        'date': _current_date,
+        'date_short': _short_date,
+        'cesspit_progress': cesspit_progress,
+        'cesspit_reading_state': cesspit_reading_state,
+        'cesspit_predicted_full_date': cesspit_predicted_full_date,
+        'cesspit_predicted_at': cesspit_predicted_at,
+        'cesspit_predicted_in_days': cesspit_predicted_in_days,
+        'tm_cesspit': tm_cesspit,
+        'graph_today': graph_today_svg,
+        'graph_this_week': graph_week_svg,
+        'graph_prediction': graph_prediction_svg,
     }
 
     return HttpResponse(template.render(context, request))
