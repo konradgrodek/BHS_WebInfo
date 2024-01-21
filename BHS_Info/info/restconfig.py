@@ -45,6 +45,7 @@ class RestConfig(ConfigParser):
     OPTION_CURRENT_PRECIPITATION = 'current-precipitation'
     OPTION_CURRENT_WIND = 'current-wind'
     OPTION_CURRENT_WATER_TANK = 'current-water-tank'
+    OPTION_SYSTEM_STATUS = 'system-status'
     OPTION_GRAPH_TEMPERATURE = 'graph-temperature'
     OPTION_PROGRESS_BAR = 'progress-bar'
     OPTION_HISTORY_TEMP_DAILY = 'history-temperature-daily'
@@ -142,3 +143,8 @@ class RestConfig(ConfigParser):
         return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
                             _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
                             _path=self.get(section=self.SECTION_REST, option=self.OPTION_GRAPH_CESSPIT_PREDICTION))
+
+    def get_system_status_endpoint(self) -> RestEndPoint:
+        return RestEndPoint(_host=self.get(section=self.SECTION_REST, option=self.OPTION_HOST),
+                            _port=self.get(section=self.SECTION_REST, option=self.OPTION_PORT),
+                            _path=self.get(section=self.SECTION_REST, option=self.OPTION_SYSTEM_STATUS))

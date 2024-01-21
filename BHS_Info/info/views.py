@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.template import loader
 
 from datetime import timedelta
+from functools import reduce
 
 import logging as log
 
@@ -34,6 +35,7 @@ def index(request):
     precipitation = information.get_precipitation()
     wind = information.get_wind()
     water_tank = information.get_water_tank()
+    system_status = information.get_system_status()
     progress_bars = ProgressBar()
     progress_bar_size = (4, 0.32)
 
@@ -145,6 +147,40 @@ def index(request):
         size=progress_bar_size, show_border=False, colormap='Greens')
     tm_water_level = water_tank.timestamp.strftime('%H:%M') if water_tank.has_succeeded() else UNKNOWN
 
+    # system status
+    _icon_ok = "emoji-smile-fill.svg"
+    _icon_warn = "emoji-surprise-fill.svg"
+    _icon_ko = "emoji-angry-fill.svg"
+
+    internet_icon = _icon_ok if system_status.has_succeeded() and system_status.internet_connection_status.alive \
+        else _icon_ko
+    internet_download = UNKNOWN if not system_status.has_succeeded() \
+        else f"{int(system_status.internet_connection_status.download_kbps/1024)}M"
+    internet_upload = UNKNOWN if not system_status.has_succeeded() \
+        else f"{int(system_status.internet_connection_status.upload_kbps/1024)}M"
+    internet_ping = UNKNOWN if not system_status.has_succeeded() \
+        else f"{system_status.internet_connection_status.ping_microseconds/1000:.1f}ms"
+    internet_tm = system_status.internet_connection_status.timestamp.strftime('%H:%M')
+
+    _activities_state = [_activity_state.state for _activity_state in reduce(
+        lambda x, y: x+y,
+        [_status.activities_state for _status in system_status.service_statuses]
+    )]
+
+    activities_up = sum([1 if _state in (ServiceActivityState.OK, ServiceActivityState.STARTING) else 0
+                         for _state in _activities_state])
+    activities_down = sum([1 if _state in (ServiceActivityState.NOT_AVAILABLE, ServiceActivityState.DEAD) else 0
+                           for _state in _activities_state])
+    activities_warn = sum([1 if _state == ServiceActivityState.WARNING else 0
+                           for _state in _activities_state])
+    activities_icon = _icon_ok if activities_down+activities_warn == 0 and activities_up > 0 \
+        else _icon_ko if activities_down > 0 or activities_up == 0 else _icon_warn
+
+    database_icon = _icon_ok if system_status.database_status.has_succeeded() \
+        and system_status.database_status.is_available else _icon_ko
+
+    system_status_tm = system_status.timestamp.strftime('%H:%M')
+
     context = {
         'temp_external': str_temp_external,
         'temp_internal': str_temp_internal,
@@ -196,7 +232,18 @@ def index(request):
         'date': _current_date,
         'date_short': _short_date,
         'water_tank_progress': water_level,
-        'tm_water_tank_level': tm_water_level
+        'tm_water_tank_level': tm_water_level,
+        'internet_icon': internet_icon,
+        'internet_download': internet_download,
+        'internet_upload': internet_upload,
+        'internet_ping': internet_ping,
+        'internet_tm': internet_tm,
+        'activities_up': activities_up,
+        'activities_down': activities_down,
+        'activities_warn': activities_warn,
+        'activities_icon': activities_icon,
+        'database_icon': database_icon,
+        'system_status_tm': system_status_tm,
     }
 
     return HttpResponse(template.render(context, request))

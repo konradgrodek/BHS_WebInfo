@@ -38,28 +38,32 @@ class RestBackend:
         response = self._responses.get(cache_key)
         if not response:
             response = requests.get(_url, params=params)
+            response.raise_for_status()
             self._responses[cache_key] = response
         return response
 
-    def _get_json(self, _url: str, params=None):
-        response = self._get(_url, params)
-        return response.json() if response.status_code == 200 else None
+    # def _get_json(self, _url: str, params=None):
+    #     response = self._get(_url, params)
+    #     return response.json() if response.status_code == 200 else None
 
     def _safe_json_get(self, endpoint: RestEndPoint, params=None):
         try:
-            resp = json_to_bean(self._get_json(endpoint.get_url(), params))
+            get_response = self._get(endpoint.get_url(), params)
+            bean_response = json_to_bean(get_response.json()) \
+                if get_response.status_code == 200 \
+                else ErrorJsonBean(f'Response code {get_response.status_code}')
         except ValueError as err:
-            resp = ErrorJsonBean(repr(err))
+            bean_response = ErrorJsonBean(repr(err))
         except requests.Timeout:
-            resp = NotAvailableJsonBean()
+            bean_response = NotAvailableJsonBean()
         except requests.ConnectionError as err:
-            resp = ErrorJsonBean('Connection issue')
+            bean_response = ErrorJsonBean(f'Connection issue: {str(err)}')
         except requests.HTTPError as err:
-            resp = ErrorJsonBean('HTTP Error')
+            bean_response = ErrorJsonBean(f'HTTP Error: {str(err)}')
         except Exception as exc:
-            resp = ErrorJsonBean('Unknown exception')
+            bean_response = ErrorJsonBean(f'Unknown exception: {str(exc)}')
 
-        return resp
+        return bean_response
 
 
 class SVGGraph(RestBackend):
@@ -67,9 +71,19 @@ class SVGGraph(RestBackend):
     def __init__(self):
         RestBackend.__init__(self)
 
+    @staticmethod
+    def _empty_svg():
+        return mark_safe(
+           f'<svg width="1pt" height="1pt" viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>'
+        )
+
     def _svg(self, _url: str, params: dict) -> str:
-        response = self._get(_url, params)
-        response.raise_for_status()
+        response = None
+        try:
+            response = self._get(_url, params)
+        finally:
+            if response is None or response.status_code != 200:
+                return SVGGraph._empty_svg()
         _xml = response.text
         # wipe-away the comments, just leave the plain XML, which can be later pasted into web page
         _xml = _xml[_xml.index('<svg'):] if _xml.find('<svg') > 0 else ''
@@ -131,12 +145,14 @@ class TemperatureInfo(RestBackend):
     def _get_temp(self, location: str) -> TemperatureReadingJson:
         _temp = self.temperatures.get(location)
         if not _temp:
-            all_temps = json_to_bean(self._get_json(rest_configuration.get_current_temperature_endpoint().get_url()))
+            all_temps = self._safe_json_get(rest_configuration.get_current_temperature_endpoint())
             # expected list
             if type(all_temps) == list:
                 for t in all_temps:
                     self.temperatures[t.sensor_location] = t
-            _temp = self.temperatures.get(location)
+                _temp = self.temperatures.get(location)
+            else:  # error reported
+                _temp = all_temps
         return _temp if _temp is not None else NotAvailableJsonBean()
 
     def get_temp_external(self) -> TemperatureReadingJson:
@@ -235,6 +251,8 @@ class MainPageInfo(TemperatureInfo):
     def get_cesspit_prediction(self) -> CesspitPredictionJson:
         return self._safe_json_get(rest_configuration.get_current_cesspit_prediction_endpoint())
 
+    def get_system_status(self) -> SystemStatusJson:
+        return self._safe_json_get(rest_configuration.get_system_status_endpoint())
 
 class TemperatureDailyStatistics(RestBackend):
 
