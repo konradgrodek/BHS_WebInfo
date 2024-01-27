@@ -413,6 +413,7 @@ def cesspit(request):
 
     r_level = information.get_cesspit_level()
     r_prediction = information.get_cesspit_prediction()
+    r_log = information.get_cesspit_log()
 
     cesspit_progress = progress_bar.get_progress_bar(
         r_level.original_reading.fill if r_level.has_succeeded() else 0, size=progress_bar_size, colormap='RdYlGn_r')
@@ -424,6 +425,9 @@ def cesspit(request):
         if r_prediction.has_succeeded() else UNKNOWN
     cesspit_predicted_at = r_prediction.as_of_date.strftime('%H:%M') \
         if r_prediction.has_succeeded() else UNKNOWN
+    # cesspit_log = [f'<p class="fs-6 text-break>{l}</p>' for l in r_log.log_entries] \
+    #     if r_log.has_succeeded() else []
+    cesspit_log = list(reversed(r_log.log_entries)) if r_log.has_succeeded() else []
 
     graph_today_svg = mark_safe(graph.get_today_usage_graph())
     graph_week_svg = mark_safe(graph.get_last_week_usage_graph())
@@ -437,6 +441,7 @@ def cesspit(request):
         'cesspit_predicted_full_date': cesspit_predicted_full_date,
         'cesspit_predicted_at': cesspit_predicted_at,
         'cesspit_predicted_in_days': cesspit_predicted_in_days,
+        'cesspit_log': cesspit_log,
         'tm_cesspit': tm_cesspit,
         'graph_today': graph_today_svg,
         'graph_this_week': graph_week_svg,

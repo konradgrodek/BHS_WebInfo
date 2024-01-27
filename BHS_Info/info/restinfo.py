@@ -254,6 +254,10 @@ class MainPageInfo(TemperatureInfo):
     def get_system_status(self) -> SystemStatusJson:
         return self._safe_json_get(rest_configuration.get_system_status_endpoint())
 
+    def get_cesspit_log(self) -> ServiceLogJson:
+        return self._safe_json_get(rest_configuration.get_current_cesspit_log_endpoint())
+
+
 class TemperatureDailyStatistics(RestBackend):
 
     def __init__(self):
