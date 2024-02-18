@@ -211,7 +211,7 @@
 
     <div align="center">
       <span class="border p-2" style="font-size:0.8em; --bs-border-opacity: .5;">
-        Status systemu | {{system_status_tm}} <img src="{% static 'info/' %}{{internet_icon}}"> internet | {{internet_tm}} | {{internet_download}} |
+        <a href="/sys_status">Status systemu</a> | {{system_status_tm}} <img src="{% static 'info/' %}{{internet_icon}}"> internet | {{internet_tm}} | {{internet_download}} |
          {{internet_upload}} | {{internet_ping}}, <img src="{% static 'info/' %}{{database_icon}}"> db,
         <img src="{% static 'info/' %}{{activities_icon}}"> services {{activities_up}}/{{activities_warn}}/{{activities_down}}
       </span>

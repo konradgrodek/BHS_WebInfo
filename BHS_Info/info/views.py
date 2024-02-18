@@ -161,9 +161,9 @@ def index(request):
         and system_status.internet_connection_status.alive \
         else _icon_internet_ko
     if system_status.has_succeeded() and system_status.internet_connection_status.has_succeeded():
-        internet_download = f"{int(system_status.internet_connection_status.download_kbps/1024)}M" \
+        internet_download = f"{int(system_status.internet_connection_status.download_kbps/1000)}M" \
             if system_status.internet_connection_status.download_kbps is not None else UNKNOWN
-        internet_upload = f"{int(system_status.internet_connection_status.upload_kbps/1024)}M" \
+        internet_upload = f"{int(system_status.internet_connection_status.upload_kbps/1000)}M" \
             if system_status.internet_connection_status.upload_kbps is not None else UNKNOWN
         internet_ping = f"{system_status.internet_connection_status.ping_microseconds/1000:.1f}ms" \
             if system_status.internet_connection_status.ping_microseconds is not None else UNKNOWN
@@ -463,3 +463,88 @@ def cesspit(request):
     }
 
     return HttpResponse(template.render(context, request))
+
+
+def system_status(request):
+    template = loader.get_template('system_status.html')
+
+    _icon_internet_ok = 'globe-green.svg'
+    _icon_internet_ko = 'globe-red.svg'
+    _icon_db_ok = 'database-fill-check.svg'
+    _icon_db_ko = 'database-fill-down.svg'
+    _icon_services_ok = 'check-circle-fill.svg'
+    _icon_services_ko = 'exclamation-circle-fill-red.svg'
+    _icon_services_warn = 'exclamation-circle-fill-orange.svg'
+
+    information = SystemStatusInfo()
+    status = information.get_system_status()
+    inet = status.internet_connection_status \
+        if status.has_succeeded() and status.internet_connection_status.has_succeeded() else None
+
+    components = [(
+        'Baza danych',
+        'RPiCopper',  # hard-coded; maybe should be not here, but in REST?
+        _icon_db_ok if status.has_succeeded() and status.database_status is not None and status.database_status.is_available
+        else _icon_db_ko,
+        (status.timestamp if not status.has_succeeded() or status.database_status is None
+         else status.database_status.timestamp).strftime('%H:%M'),
+        UNKNOWN if not status.has_succeeded() or status.database_status is None
+        else " | ".join([msg for msg in (status.database_status.connected_to, status.database_status.log, status.database_status.issue) if msg is not None])
+    )]
+
+    if status.has_succeeded() and status.service_statuses is not None:
+        for _service in status.service_statuses:
+            components.extend([
+                (
+                    _a.name if len(_service.activities_state) < 2 else f"{_a.name}|{_service.name}",
+                    _service.hostname if _service.hostname is not None else UNKNOWN,
+                    _icon_services_ok if _a.state == ServiceActivityState.OK else
+                    _icon_services_ko if _a.state == ServiceActivityState.DEAD else
+                    _icon_services_warn if _a.state == ServiceActivityState.WARNING else
+                    UNKNOWN_ICON,
+                    _a.timestamp.strftime('%H:%M' if (datetime.now() - _a.timestamp).total_seconds() < 24*60*60
+                                          else '%Y-%m-%d %H:%m'),
+                    _a.message if _a.message is not None else UNKNOWN,
+                )
+                for _a in _service.activities_state
+            ])
+
+    servers = list()
+    if status.has_succeeded() and status.host_statuses is not None:
+        servers = [
+            (
+                host_status.host_name,  # 0
+                host_status.timestamp.strftime('%Y-%m-%d %H:%M'),  # 1
+                _time_lapsed(host_status.boot_time),  # 2
+                _icon_services_ok if host_status.up else _icon_services_ko  # 3
+            )
+            for host_status in status.host_statuses
+        ]
+
+    context = {
+        "the_date": status.timestamp.strftime('%Y-%m-%d %H:%M'),
+        "inet_date": (inet.timestamp if inet is not None else status.timestamp).strftime('%Y-%m-%d %H:%M'),
+        "inet_icon": UNKNOWN_ICON if inet is None else _icon_internet_ok if inet.alive else _icon_internet_ko,
+        "inet_up": UNKNOWN if inet is None else f"{int(inet.upload_kbps / 1000)} Mbps",
+        "inet_down": UNKNOWN if inet is None else f"{int(inet.download_kbps / 1000)} Mbps",
+        "inet_ping": UNKNOWN if inet is None else f"{inet.ping_microseconds / 1000:.3f} ms",
+        "inet_jitter": UNKNOWN if inet is None else f"{inet.jitter_microseconds / 1000:.3f} ms",
+        "inet_ip": UNKNOWN if inet is None or inet.external_ip is None else inet.external_ip,
+        "components": components,
+        "servers": servers
+    }
+
+    return HttpResponse(template.render(context, request))
+
+
+def _time_lapsed(start_time: datetime) -> str:
+    if start_time is None:
+        return UNKNOWN
+    delta = datetime.now() - start_time
+    hours = round(delta.total_seconds()) // (60*60)
+    days = (hours // 24) % 7
+    weeks = (hours // 24) // 7
+    hours = hours % 24
+    days = "" if days < 1 else f"{days} dni, "
+    weeks = "" if weeks < 1 else f"{weeks} tygodni, "
+    return f"{weeks}{days}{hours} godzin"

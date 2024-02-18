@@ -279,3 +279,13 @@ class CesspitInfo(MainPageInfo):
         In order to not duplicate code, this derives from MainPageInfo
         """
         MainPageInfo.__init__(self)
+
+
+class SystemStatusInfo(MainPageInfo):
+
+    def __init__(self):
+        """
+        Creates new object responsible for delivering information for page with system status.
+        In order to not duplicate code, this derives from MainPageInfo
+        """
+        MainPageInfo.__init__(self)
